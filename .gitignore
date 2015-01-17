@@ -31,3 +31,13 @@ src/.libs/libescapecabron.a
 *.dylib
 
 *.a
+
+config.log
+
+src/.libs/libescapecabron.0.dylib
+
+*.dylib
+
+*.a
+
+src/.libs/libescapecabron.a
