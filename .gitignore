@@ -21,3 +21,13 @@
 config.log
 
 *.a
+
+config.log
+
+src/.libs/libescapecabron.0.dylib
+
+src/.libs/libescapecabron.a
+
+*.dylib
+
+*.a
