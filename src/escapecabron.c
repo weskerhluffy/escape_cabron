@@ -4,14 +4,13 @@
  Author      : ernesto
  Version     :
  Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
+ Description : Era un bandido tan pervertido...
  ============================================================================
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(void) {
-	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
-	return EXIT_SUCCESS;
+void escape_cabron_determina_nodos_viables(void *matrix_vertices,){
+
 }
