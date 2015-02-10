@@ -1,2 +1,3 @@
 Running suite(s): Unos locos
-100%: Checks: 0, Failures: 0, Errors: 0
+100%: Checks: 1, Failures: 0, Errors: 0
+check_escapecabron.c:39:P:Core:test_determina_nodos_viables:0: Passed

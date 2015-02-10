@@ -14,45 +14,11 @@
 
 *.a
 
-*.dylib
-
-*.a
-
 config.log
 
-*.a
-
-config.log
-
-src/.libs/libescapecabron.0.dylib
-
-src/.libs/libescapecabron.a
-
-*.dylib
-
-*.a
-
-config.log
-
-src/.libs/libescapecabron.0.dylib
-
-*.dylib
-
-*.a
-
-src/.libs/libescapecabron.a
-
 *.Tpo
-
-*.Tpo
-
-*.Tpo
-
-src/.deps/escapecabron.Tpo
 
 tests/check_escapecabron.log
-
-*.o
 
 *.o
 
@@ -62,26 +28,11 @@ src/.libs/main
 
 envfuera.txt
 
-src/.deps/escapecabron.Plo
-
 *.Plo
 
-*.Po
+src/.deps
 
-src/.deps/main.Po
-
-src/.libs/main
-
-*.o
-
-src/main.o
-
-*.Po
-
-tests/.deps/check_escapecabron-check_escapecabron.Po
+src/.libs
 
 tests/.libs/check_escapecabron
 
-tests/check_escapecabron-check_escapecabron.o
-
-tests/check_escapecabron.log
