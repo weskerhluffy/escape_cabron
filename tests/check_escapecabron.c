@@ -9,11 +9,11 @@ START_TEST( test_determina_nodos_viables)
 		const tipo_dato POSICION_INICIAL_BANDIDOS_DE_AMORES = 3;
 		const tipo_dato POSICION_INICIAL_POLICIAS = 2;
 		const tipo_dato VERTICES[2][3] = { { 1, 2, 7 }, { 2, 3, 8 } };
-		const tipo_dato RESULTADO_ESPERADO = 1;
+		const tipo_dato RESULTADO_ESPERADO[] = { 1, 1, 3, 3 };
 
 		bool resultado = falso;
 		int nodos_viables_calculados = 0;
-		tipo_dato resultado_real[2] = { 0 };
+		tipo_dato resultado_real[4] = { 0 };
 
 		grafo_contexto grafo_viable_ctx;
 
@@ -31,12 +31,12 @@ START_TEST( test_determina_nodos_viables)
 				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES);
 
 		grafo_get_representacion_en_matriz_ordenada(&grafo_viable_ctx,
-				resultado_real, 2);
+				resultado_real, 1);
 
-		resultado = nodos_viables_calculados == 2
-				&& RESULTADO_ESPERADO == resultado_real;
+		resultado = (nodos_viables_calculados == 2)
+				&& !memcmp(RESULTADO_ESPERADO, resultado_real, 4*(sizeof(tipo_dato)));
 
-		ck_assert_msg(resultado_real, "verga, la matrix es %d", resultado_real);
+		ck_assert_msg(resultado, "verga, la matrix es %d", resultado_real);
 	}END_TEST
 
 Suite *

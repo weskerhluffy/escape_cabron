@@ -41,3 +41,21 @@ src/.libs/libescapecabron.0.dylib
 *.a
 
 src/.libs/libescapecabron.a
+
+*.Tpo
+
+*.Tpo
+
+*.Tpo
+
+src/.deps/escapecabron.Tpo
+
+tests/check_escapecabron.log
+
+*.o
+
+*.o
+
+src/.libs/main
+
+*.Po
