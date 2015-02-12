@@ -36,3 +36,11 @@ src/.libs
 
 tests/.libs/check_escapecabron
 
+
+src/.libs/main
+
+tests/.libs/check_escapecabron
+
+tests/check_escapecabron-check_escapecabron.o
+
+tests/check_escapecabron.log
