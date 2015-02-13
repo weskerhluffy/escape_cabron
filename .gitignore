@@ -44,3 +44,7 @@ tests/.libs/check_escapecabron
 tests/check_escapecabron-check_escapecabron.o
 
 tests/check_escapecabron.log
+
+*.Plo
+
+src/.deps/escapecabron.Plo

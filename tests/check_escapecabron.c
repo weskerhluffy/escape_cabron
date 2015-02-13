@@ -28,7 +28,8 @@ START_TEST( test_determina_nodos_viables)
 //		mierda=0;
 		nodos_viables_calculados = escape_cabron_determina_nodos_viables(
 				(void *) VERTICES, 2, &grafo_viable_ctx,
-				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES);
+				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
+				NULL );
 
 		grafo_get_representacion_en_matriz_ordenada(&grafo_viable_ctx,
 				resultado_real, 1);
@@ -60,11 +61,11 @@ START_TEST( test_determina_nodos_viables_caso_posible)
 		 caca_log_debug("FFFFUUUUCCKKK");
 		 }
 		 */
-					sleep(10);
 		//		mierda=0;
 		nodos_viables_calculados = escape_cabron_determina_nodos_viables(
 				(void *) VERTICES, 2, &grafo_viable_ctx,
-				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES);
+				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
+				NULL );
 
 		grafo_get_representacion_en_matriz_ordenada(&grafo_viable_ctx,
 				resultado_real, 1);
@@ -76,14 +77,74 @@ START_TEST( test_determina_nodos_viables_caso_posible)
 		ck_assert_msg(resultado, "verga, la matrix es %d", resultado_real);
 	}END_TEST
 
+START_TEST( test_encuentra_escape_imposible)
+	{
+		const tipo_dato POSICION_INICIAL_BANDIDOS_DE_AMORES = 3;
+		const tipo_dato POSICION_INICIAL_POLICIAS = 2;
+		const tipo_dato VERTICES[2][3] = { { 1, 2, 7 }, { 2, 3, 8 } };
+		const tipo_dato SALIDAS_A_CARRETERA[] = { 1 };
+
+		float resultado = 0;
+
+		caca_log_debug("me kiero cortar los webos");
+
+		/*
+		 while (mierda) {
+		 caca_log_debug("FFFFUUUUCCKKK");
+		 }
+		 */
+		//			sleep(10);
+		//		mierda=0;
+		resultado = escape_cabron_encuentra_escape((void *) VERTICES, 2,
+				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
+				(tipo_dato *)SALIDAS_A_CARRETERA, 1);
+
+		ck_assert_msg(!resultado, "verga, la velocidad max es %f", resultado);
+	}END_TEST
+
+START_TEST( test_encuentra_escape_posible)
+	{
+		const tipo_dato POSICION_INICIAL_BANDIDOS_DE_AMORES = 2;
+		const tipo_dato POSICION_INICIAL_POLICIAS = 3;
+		const tipo_dato VERTICES[2][3] = { { 1, 2, 7 }, { 2, 3, 8 } };
+		const tipo_dato SALIDAS_A_CARRETERA[] = { 1 };
+		const float RESULTADO_ESPERADO=74.6666666667;
+
+		float resultado = 0;
+
+
+		caca_log_debug("me kiero cortar los webos");
+
+		/*
+		 while (mierda) {
+		 caca_log_debug("FFFFUUUUCCKKK");
+		 }
+		 */
+		//			sleep(10);
+		//		mierda=0;
+		resultado = escape_cabron_encuentra_escape((void *) VERTICES, 2,
+				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
+				(tipo_dato *)SALIDAS_A_CARRETERA, 1);
+		caca_log_debug("velocidad maxima %f", resultado);
+
+		ck_assert_msg(resultado, "verga, la velocidad max es %f", resultado);
+	}END_TEST
+
 Suite *
 escapecabron_suite(void) {
 	Suite *s = suite_create("Unos locos");
 
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
-//	tcase_add_test(tc_core, test_determina_nodos_viables);
+	tcase_add_test(tc_core, test_determina_nodos_viables);
+	/*
 	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
+	*/
+	tcase_add_test(tc_core, test_encuentra_escape_imposible);
+	/*
+	tcase_add_test(tc_core, test_encuentra_escape_posible);
+	*/
+
 	suite_add_tcase(s, tc_core);
 
 	return s;
