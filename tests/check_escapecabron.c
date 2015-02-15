@@ -128,7 +128,47 @@ START_TEST( test_encuentra_escape_posible)
 				(tipo_dato *) SALIDAS_A_CARRETERA, 1);
 		caca_log_debug("velocidad maxima %f", resultado);
 
-		ck_assert_msg(resultado-RESULTADO_ESPERADO< ERROR_MAXIMO,
+		ck_assert_msg(resultado &&resultado-RESULTADO_ESPERADO< ERROR_MAXIMO,
+				"verga, la velocidad max es %f", resultado);
+	}END_TEST
+
+START_TEST( test_encuentra_escape_ultimo_exemplo)
+	{
+		const int NUM_FILAS = 4;
+		const tipo_dato POSICION_INICIAL_BANDIDOS_DE_AMORES = 3;
+		const tipo_dato POSICION_INICIAL_POLICIAS = 4;
+		const tipo_dato VERTICES[NUM_FILAS][3] = {
+
+		{ 1, 4, 1 },
+
+		{ 1, 3, 4 },
+
+		{ 3, 4, 10 },
+
+		{ 2, 3, 30 }
+
+		};
+		const tipo_dato SALIDAS_A_CARRETERA[] = { 1, 2 };
+		const float RESULTADO_ESPERADO = 137.142857143;
+
+		float resultado = 0;
+
+		caca_log_debug("video kill the radio star");
+
+		/*
+		 while (mierda) {
+		 caca_log_debug("FFFFUUUUCCKKK");
+		 }
+		 */
+		//			sleep(10);
+		//		mierda=0;
+		resultado = escape_cabron_encuentra_escape((void *) VERTICES, NUM_FILAS,
+				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
+				(tipo_dato *) SALIDAS_A_CARRETERA,
+				sizeof(SALIDAS_A_CARRETERA) / sizeof(tipo_dato));
+		caca_log_debug("velocidad maxima %f", resultado);
+
+		ck_assert_msg(resultado && resultado-RESULTADO_ESPERADO< ERROR_MAXIMO,
 				"verga, la velocidad max es %f", resultado);
 	}END_TEST
 
@@ -140,10 +180,11 @@ escapecabron_suite(void) {
 	TCase *tc_core = tcase_create("Core");
 	tcase_add_test(tc_core, test_determina_nodos_viables);
 	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
-	/*
-	 */
 	tcase_add_test(tc_core, test_encuentra_escape_imposible);
 	tcase_add_test(tc_core, test_encuentra_escape_posible);
+	/*
+	 */
+	tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
 	/*
 	 */
 
