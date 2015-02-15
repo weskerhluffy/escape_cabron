@@ -4,6 +4,8 @@
 #include <cacacomun.h>
 #include "../src/escapecabron.h"
 
+#define ERROR_MAXIMO 1E-6
+
 START_TEST( test_determina_nodos_viables)
 	{
 		const tipo_dato POSICION_INICIAL_BANDIDOS_DE_AMORES = 3;
@@ -97,7 +99,7 @@ START_TEST( test_encuentra_escape_imposible)
 		//		mierda=0;
 		resultado = escape_cabron_encuentra_escape((void *) VERTICES, 2,
 				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
-				(tipo_dato *)SALIDAS_A_CARRETERA, 1);
+				(tipo_dato *) SALIDAS_A_CARRETERA, 1);
 
 		ck_assert_msg(!resultado, "verga, la velocidad max es %f", resultado);
 	}END_TEST
@@ -108,10 +110,9 @@ START_TEST( test_encuentra_escape_posible)
 		const tipo_dato POSICION_INICIAL_POLICIAS = 3;
 		const tipo_dato VERTICES[2][3] = { { 1, 2, 7 }, { 2, 3, 8 } };
 		const tipo_dato SALIDAS_A_CARRETERA[] = { 1 };
-		const float RESULTADO_ESPERADO=74.6666666667;
+		const float RESULTADO_ESPERADO = 74.6666666667;
 
 		float resultado = 0;
-
 
 		caca_log_debug("me kiero cortar los webos");
 
@@ -124,10 +125,11 @@ START_TEST( test_encuentra_escape_posible)
 		//		mierda=0;
 		resultado = escape_cabron_encuentra_escape((void *) VERTICES, 2,
 				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
-				(tipo_dato *)SALIDAS_A_CARRETERA, 1);
+				(tipo_dato *) SALIDAS_A_CARRETERA, 1);
 		caca_log_debug("velocidad maxima %f", resultado);
 
-		ck_assert_msg(resultado, "verga, la velocidad max es %f", resultado);
+		ck_assert_msg(resultado-RESULTADO_ESPERADO< ERROR_MAXIMO,
+				"verga, la velocidad max es %f", resultado);
 	}END_TEST
 
 Suite *
@@ -137,13 +139,13 @@ escapecabron_suite(void) {
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
 	tcase_add_test(tc_core, test_determina_nodos_viables);
-	/*
 	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
-	*/
-	tcase_add_test(tc_core, test_encuentra_escape_imposible);
 	/*
+	 */
+	tcase_add_test(tc_core, test_encuentra_escape_imposible);
 	tcase_add_test(tc_core, test_encuentra_escape_posible);
-	*/
+	/*
+	 */
 
 	suite_add_tcase(s, tc_core);
 

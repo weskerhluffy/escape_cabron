@@ -52,8 +52,8 @@ int escape_cabron_determina_nodos_viables(void *matrix_vertices, int num_filas,
 	}
 
 	caca_log_debug("llamando a dijkstra");
-	dijkstra_main(matrix_vertices, num_filas, posicion_incomoda,
-			posicion_inicial, NULL, distancias_minimas, antecesores);
+	dijkstra_main(NULL, 0, posicion_incomoda, posicion_inicial,
+			&grafo_inicial_ctx, distancias_minimas, antecesores);
 
 	caca_log_debug("las distancias minimas son: %s",
 			caca_arreglo_a_cadena(distancias_minimas, num_nodos + 1, buffer));
@@ -88,6 +88,9 @@ int escape_cabron_determina_nodos_viables(void *matrix_vertices, int num_filas,
 			caca_arreglo_a_cadena(ruta_maldita, contador_nodos_ruta_maldita,
 					buffer));
 
+	caca_log_debug("el grafo initial antes de ser copiado");
+	imprimir_lista_adjacencia(grafo_inicial_ctx.inicio);
+
 	grafo_copia_profunda(&grafo_inicial_ctx, grafo_viable_ctx, ruta_maldita + 1,
 			contador_nodos_ruta_maldita - 1);
 
@@ -102,6 +105,7 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 		tipo_dato posicion_polis, tipo_dato posicion_ratas,
 		tipo_dato *salidas_carretera, int num_salidas_carretera) {
 	int num_nodos_viables = 0;
+	int num_salidas_viables = 0;
 	float maxima_velocidad = 0;
 	float tiempo_polis = 0;
 	tipo_dato salida_carretera_actual = 0;
@@ -115,6 +119,7 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 	tipo_dato *distancias_minimas = NULL;
 	tipo_dato *antecesores = NULL;
 	tipo_dato *distancias_salidas_carretera = NULL;
+	tipo_dato *salidas_carretera_viables = NULL;
 
 	buffer = calloc(1000, sizeof(char));
 
@@ -144,10 +149,16 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 		perror("no se consigio memoria para antecesores");
 		abort();
 	}
-	distancias_salidas_carretera = malloc(
-			num_salidas_carretera * sizeof(tipo_dato));
+	distancias_salidas_carretera = calloc(num_salidas_carretera,
+			sizeof(tipo_dato));
 	if (!antecesores) {
 		perror("no se consigio memoria para distancias de salidas a carretera");
+		abort();
+	}
+	salidas_carretera_viables = calloc(num_salidas_carretera,
+			sizeof(tipo_dato));
+	if (!antecesores) {
+		perror("no se consigio memoria para salidas a carretera viables");
 		abort();
 	}
 	memset(antecesores, DIJKSTRA_VALOR_INVALIDO,
@@ -160,14 +171,29 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 
 	for (int i = 0; i < num_salidas_carretera; i++) {
 		salida_carretera_actual = *(salidas_carretera + i);
-		distancia_salida_carretera_actual = *(distancias_minimas
-				+ salida_carretera_actual);
-		*(distancias_salidas_carretera + i) = distancia_salida_carretera_actual;
+		if ((distancia_salida_carretera_actual = *(distancias_minimas
+				+ salida_carretera_actual)) == MAX_VALOR) {
+			caca_log_debug("Mierda, la salida %ld es inalcanzable",
+					salida_carretera_actual);
+			continue;
+		}
+		*(distancias_salidas_carretera + num_salidas_viables) =
+				distancia_salida_carretera_actual;
+		*(salidas_carretera_viables + num_salidas_viables) =
+				salida_carretera_actual;
+		num_salidas_viables++;
 	}
 
 	caca_log_debug("las distancias a las salidas de la carretera son %s",
 			caca_arreglo_a_cadena(distancias_salidas_carretera,
-					num_salidas_carretera, buffer));
+					num_salidas_viables, buffer));
+	caca_log_debug("las salidas de la carretera viables son %s",
+			caca_arreglo_a_cadena(salidas_carretera_viables,
+					num_salidas_viables, buffer));
+
+	if (!num_salidas_viables) {
+		return maxima_velocidad;
+	}
 
 	cola_salidas_carretera = calloc(1, sizeof(cola_prioridad_contexto));
 	if (!antecesores) {
@@ -175,7 +201,7 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 		abort();
 	}
 
-	cola_prioridad_init(cola_salidas_carretera, NULL, salidas_carretera,
+	cola_prioridad_init(cola_salidas_carretera, NULL, salidas_carretera_viables,
 			distancias_salidas_carretera, num_salidas_carretera, NULL, NULL );
 
 	if (cola_prioridad_es_vacia(cola_salidas_carretera)) {
