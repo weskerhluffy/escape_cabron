@@ -14,7 +14,7 @@
 #include <cacacomun.h>
 #include "escapecabron.h"
 
-int escape_cabron_determina_nodos_viables(void *matrix_vertices, int num_filas,
+int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 		grafo_contexto *grafo_viable_ctx, tipo_dato posicion_incomoda,
 		tipo_dato posicion_inicial,
 		tipo_dato *distancia_posicion_incomoda_a_inicial) {
@@ -29,8 +29,8 @@ int escape_cabron_determina_nodos_viables(void *matrix_vertices, int num_filas,
 	tipo_dato *distancias_minimas = NULL, *antecesores = NULL;
 	tipo_dato *ruta_maldita;
 
-	num_nodos = init_grafo(matrix_vertices, num_filas, &grafo_inicial_ctx,
-			falso, verdadero);
+	num_nodos = init_grafo(matrix_aristas, num_filas, &grafo_inicial_ctx, falso,
+			verdadero);
 
 	distancias_minimas = calloc(num_nodos + 1, sizeof(tipo_dato));
 	if (!distancias_minimas) {
@@ -101,7 +101,7 @@ int escape_cabron_determina_nodos_viables(void *matrix_vertices, int num_filas,
 	return num_nodos - contador_nodos_ruta_maldita + 1;
 }
 
-float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
+float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 		tipo_dato posicion_polis, tipo_dato posicion_ratas,
 		tipo_dato *salidas_carretera, int num_salidas_carretera) {
 	int num_nodos_viables = 0;
@@ -123,13 +123,23 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 
 	buffer = calloc(1000, sizeof(char));
 
+	caca_log_debug("el num d filas %d", num_filas);
+	caca_log_debug("los polis %ld", posicion_polis);
+	caca_log_debug("las ratas %ld", posicion_ratas);
+	caca_log_debug("num de salidas a carretera %ld", num_salidas_carretera);
+	caca_log_debug("las salidas a carretera %s",
+			caca_arreglo_a_cadena(salidas_carretera, num_salidas_carretera,
+					buffer));
+	caca_log_debug("la matrix de adjacencia:");
+	caca_imprime_matrix(matrix_aristas, num_filas, NULL, 3);
+
 	grafo_viable_ctx = calloc(1, sizeof(grafo_contexto));
 	if (!grafo_viable_ctx) {
 		perror("no se consigio memoria para grafo viable");
 		abort();
 	}
 
-	num_nodos_viables = escape_cabron_determina_nodos_viables(matrix_vertices,
+	num_nodos_viables = escape_cabron_determina_nodos_viables(matrix_aristas,
 			num_filas, grafo_viable_ctx, posicion_polis, posicion_ratas,
 			&distancia_polis_a_ratas);
 
@@ -218,6 +228,52 @@ float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
 	tiempo_polis = (float) distancia_recorrida_polis / MAX_VEL_POLIS;
 
 	maxima_velocidad = (float) nodo_salida_mas_cercana->indice / tiempo_polis;
+
+	return maxima_velocidad;
+}
+
+float escape_cabron_main() {
+	float maxima_velocidad = 0;
+
+	int num_aristas = 0;
+
+	tipo_dato num_nodos = 0, num_salidas = 0;
+	tipo_dato posicion_ratas = 0, posicion_polis = 0;
+
+	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
+			{ { 0 } };
+
+	tipo_dato *datos_escape = (tipo_dato *) datos_escape_mem;
+	tipo_dato *inicio_aristas = NULL;
+	tipo_dato *salidas = NULL;
+
+	lee_matrix_long_stdin((tipo_dato *) datos_escape_mem, &num_aristas, NULL,
+			ESCAPE_CABRON_MAX_FILAS_INPUT, ESCAPE_CABRON_MAX_COLS_INPUT);
+	caca_log_debug("la matrix leida,num de aristas %ld", num_aristas);
+	caca_imprime_matrix(datos_escape_mem, num_aristas, NULL,
+			ESCAPE_CABRON_MAX_COLS_INPUT);
+
+	if (!num_aristas) {
+		perror("vale verga, no c leyo nada");
+		abort();
+	}
+
+	num_nodos = *datos_escape;
+	num_aristas = *(datos_escape + 1);
+	num_salidas = *(datos_escape + 2);
+
+	inicio_aristas = datos_escape + ESCAPE_CABRON_MAX_COLS_INPUT;
+	salidas = inicio_aristas + num_aristas * ESCAPE_CABRON_MAX_COLS_INPUT;
+	posicion_ratas = *(salidas + ESCAPE_CABRON_MAX_COLS_INPUT);
+	posicion_polis = *(salidas + ESCAPE_CABRON_MAX_COLS_INPUT + 1);
+
+	caca_realinea_array(inicio_aristas, num_aristas,
+			ESCAPE_CABRON_MAX_COLS_INPUT, 3);
+
+	maxima_velocidad = escape_cabron_encuentra_escape(inicio_aristas,
+			num_aristas, posicion_polis, posicion_ratas, salidas, num_salidas);
+
+	caca_log_debug("la maxima velocida calculada %f", maxima_velocidad);
 
 	return maxima_velocidad;
 }

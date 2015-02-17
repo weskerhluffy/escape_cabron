@@ -2,9 +2,17 @@
 #include <stdio.h>
 #include <check.h>
 #include <cacacomun.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <util.h>
+#include <math.h>
 #include "../src/escapecabron.h"
 
 #define ERROR_MAXIMO 1E-6
+
+static int *resultado_assestment = NULL;
 
 START_TEST( test_determina_nodos_viables)
 	{
@@ -172,21 +180,91 @@ START_TEST( test_encuentra_escape_ultimo_exemplo)
 				"verga, la velocidad max es %f", resultado);
 	}END_TEST
 
+START_TEST(test_video_kill)
+	{
+
+		const int NUM_FILAS = 7;
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 137.142857143;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "4 4 2\n" },
+
+		{ "1 4 1\n" },
+
+		{ "1 3 4\n" },
+
+		{ "3 4 10\n" },
+
+		{ "2 3 30\n" },
+
+		{ "1 2\n" },
+
+		{ "3 4\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+
+		if (!pid) {
+			system("echo 'radio kill' > /tmp/caca.txt");
+			resultado_real = escape_cabron_main();
+			system("echo 'the video star' >> /tmp/caca.txt");
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+			system("echo 'in my ' >> /tmp/caca.txt");
+		}
+	}END_TEST
+
 Suite *
 escapecabron_suite(void) {
 	Suite *s = suite_create("Unos locos");
 
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
+	tcase_set_timeout(tc_core, 600);
 	tcase_add_test(tc_core, test_determina_nodos_viables);
 	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
 	tcase_add_test(tc_core, test_encuentra_escape_imposible);
 	tcase_add_test(tc_core, test_encuentra_escape_posible);
-	/*
-	 */
 	tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
-	/*
-	 */
+	tcase_add_test(tc_core, test_video_kill);
 
 	suite_add_tcase(s, tc_core);
 
