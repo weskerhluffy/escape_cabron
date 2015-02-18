@@ -223,9 +223,7 @@ START_TEST(test_video_kill)
 		*resultado_assestment = -1;
 
 		if (!pid) {
-			system("echo 'radio kill' > /tmp/caca.txt");
 			resultado_real = escape_cabron_main();
-			system("echo 'the video star' >> /tmp/caca.txt");
 
 			*resultado_assestment = fabsf(
 					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
@@ -248,7 +246,6 @@ START_TEST(test_video_kill)
 			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
 		} else {
 
-			system("echo 'in my ' >> /tmp/caca.txt");
 		}
 	}END_TEST
 

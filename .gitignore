@@ -48,3 +48,5 @@ tests/check_escapecabron.log
 *.Plo
 
 src/.deps/escapecabron.Plo
+
+*.o
