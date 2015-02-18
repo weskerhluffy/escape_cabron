@@ -18,9 +18,9 @@ int main(int argc, char *argv[]) {
 	speed = escape_cabron_main();
 
 	if (speed) {
-		printf("%.10f", speed);
+		printf("%.10f\n", speed);
 	} else {
-		printf("IMPOSSIBLE");
+		printf("IMPOSSIBLE\n");
 	}
 
 	return 0;

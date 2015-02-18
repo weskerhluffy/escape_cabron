@@ -26,8 +26,11 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 	grafo_contexto grafo_inicial_ctx;
 
 	char buffer[MAX_TAM_CADENA] = { '\0' };
+//	char *buffer = NULL;
 	tipo_dato *distancias_minimas = NULL, *antecesores = NULL;
 	tipo_dato *ruta_maldita;
+
+//	buffer = malloc(MAX_TAM_CADENA * sizeof(char));
 
 	num_nodos = init_grafo(matrix_aristas, num_filas, &grafo_inicial_ctx, falso,
 			verdadero);
@@ -240,12 +243,23 @@ float escape_cabron_main() {
 	tipo_dato num_nodos = 0, num_salidas = 0;
 	tipo_dato posicion_ratas = 0, posicion_polis = 0;
 
-	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
-			{ { 0 } };
+	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] = { { 0 } };
+//	tipo_dato *datos_escape_mem = NULL;
 
 	tipo_dato *datos_escape = (tipo_dato *) datos_escape_mem;
 	tipo_dato *inicio_aristas = NULL;
 	tipo_dato *salidas = NULL;
+
+	/*
+	datos_escape_mem = calloc(
+			ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT,
+			sizeof(tipo_dato));
+	if (!datos_escape_mem) {
+		perror("no se obtubo memoria para los datos del escape");
+		abort();
+	}
+	datos_escape = datos_escape_mem;
+	*/
 
 	lee_matrix_long_stdin((tipo_dato *) datos_escape_mem, &num_aristas, NULL,
 			ESCAPE_CABRON_MAX_FILAS_INPUT, ESCAPE_CABRON_MAX_COLS_INPUT);

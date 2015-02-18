@@ -9,3 +9,5 @@ libescapecabron_la_SOURCES = escapecabron.c escapecabron.h
 bin_PROGRAMS = main
 main_SOURCES = main.c
 main_LDADD = libescapecabron.la -L$(ZLOG_DIR)/lib -lzlog -lpthread -L$(CACACOMUN_DIR) -lcacacomun 
+main_LDFLAGS= -Wl,-stack_size -Wl,4000000
+

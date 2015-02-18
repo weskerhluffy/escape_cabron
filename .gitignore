@@ -50,3 +50,5 @@ tests/check_escapecabron.log
 src/.deps/escapecabron.Plo
 
 *.o
+
+tests/test-suite.log
