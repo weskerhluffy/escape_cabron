@@ -52,3 +52,15 @@ src/.deps/escapecabron.Plo
 *.o
 
 tests/test-suite.log
+
+src/symbol-mapping.txt
+
+src/tmp-filelist.txt
+
+*.dylib
+
+src/.libs/libescapecabron.dylib
+
+src/.libs/libescapecabron.la
+
+src/logfile
