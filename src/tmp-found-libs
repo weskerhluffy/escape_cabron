@@ -1,9 +1,0 @@
-s:cacacomun.h
-s:time.h
-s:unistd.h
-s:stdio.h
-c:escapecabron.h
-s:inttypes.h
-s:math.h
-s:stdlib.h
-s:string.h
