@@ -2,7 +2,7 @@
 
 include $(top_srcdir)/common.mk
 
-AM_CFLAGS = -Wall -g -I$(ZLOG_DIR)/include -I$(CACACOMUN_DIR) -std=c99
+AM_CFLAGS = -Wall -g -I$(ZLOG_DIR)/include -I$(CACACOMUN_DIR)  -O  -ansi -fno-asm -lm -static -DONLINE_JUDGE
 lib_LTLIBRARIES = libescapecabron.la 
 libescapecabron_la_SOURCES = escapecabron.c escapecabron.h
 
