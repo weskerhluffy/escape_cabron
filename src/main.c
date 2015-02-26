@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <math.h>
 
-#define td unsigned int
+#define td unsigned long
 
 #define MXN 101
 #define MXL 1024
@@ -850,7 +850,7 @@ td *antecesores) {
 		for (j = 0; j < MXCN; j++) {
 			dis_actual = (td) *(matrix_diss_int + id_or_actual * MXFN + j);
 			id_ds_actual = j;
-			if (dis_actual != GF_vl_INVALIDO
+			if (dis_actual != (td)GF_vl_INVALIDO
 					&& !(*(nos_diss_minimas_calculadas + id_ds_actual))) {
 				dijkstra_relaxar_no(gctx_int, &cpctx, id_or_actual,
 						id_ds_actual, antecesores);
@@ -860,9 +860,9 @@ td *antecesores) {
 		contador++;
 	}
 	*(antecesores + ind_no_or) = 0;
-	for (i = 0; i < max_id + 1; i++) {
+	for (i = 0; (td)i < max_id + 1; i++) {
 		*(diss_minimas + i) =
-				i == ind_no_or ? 0 :
+				(td)i == ind_no_or ? 0 :
 				caca_apuntador_valido(
 						(*(cpctx.referencias_directas_por_id + i))) ?
 						(*(cpctx.referencias_directas_por_id + i))->vl :
@@ -973,6 +973,7 @@ td *ids_a_ignorar, int tam_ids_a_ignorar) {
 			GAN(no_or_principal_actual, 0, 0);
 			continue;
 		}
+
 		no_ds_principal_actual = gna(ctx_ds, 1);
 		memset(no_ds_principal_actual, 0, sizeof(no));
 		gf_copia_no(no_or_principal_actual, no_ds_principal_actual);
@@ -1218,6 +1219,7 @@ float escape_cabron_main() {
 		perror("vale verga, no c leyo nada");
 		abort();
 	}
+
 
 	num_aristas = *(datos_escape + 1);
 	num_salidas = *(datos_escape + 2);

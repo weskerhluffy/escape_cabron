@@ -9,5 +9,5 @@ libescapecabron_la_SOURCES = escapecabron.c escapecabron.h
 bin_PROGRAMS = main
 main_SOURCES = main.c
 main_LDADD =  -L$(ZLOG_DIR)/lib -lzlog -lpthread 
-main_LDFLAGS= -Wl,--stack,0x4000000
+#main_LDFLAGS= -Wl,--stack,0x4000000
 
