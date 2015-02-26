@@ -323,10 +323,6 @@ int init_grafo(void *matrix, int num_filas, grafo_contexto *ctx,
 
 		*(matrix_distancias + indice_origen_actual * MAX_COLUMNAS_NODOS
 				+ indice_destino_actual) = distancia_actual;
-		printf("seteando %ld en %ld,%ld\n",
-				*(matrix_distancias + indice_origen_actual * MAX_COLUMNAS_NODOS
-						+ indice_destino_actual), indice_origen_actual,
-				indice_destino_actual);
 		if (relaciones_bidireccionales) {
 			*(matrix_distancias + indice_destino_actual * MAX_COLUMNAS_NODOS
 					+ indice_origen_actual) = distancia_actual;
@@ -885,8 +881,6 @@ tipo_dato *antecesores) {
 	matrix_distancias = gctx->matrix_distancias;
 	dist_origen_dest = *(matrix_distancias
 			+ ind_nodo_origen * MAX_COLUMNAS_NODOS + ind_nodo_destino);
-	printf("distancia de %ld a %ld es %ld", ind_nodo_origen, ind_nodo_destino,
-			dist_origen_dest);
 
 	distancias_minimas = cpctx->referencias_directas_por_indice;
 
@@ -928,7 +922,6 @@ tipo_dato *antecesores) {
 	bool nodos_distancias_minimas_calculadas[MAX_NODOS] = { falso };
 	nodo_cola_prioridad distancias_minimas_nodos[MAX_NODOS];
 
-	printf("fairy tail\n");
 
 	caca_inutiliza_nodo_cola_prioridad(distancias_minimas_nodos, MAX_NODOS);
 
@@ -939,15 +932,10 @@ tipo_dato *antecesores) {
 		init_grafo(matrix_distancias, num_filas, gctx_int, falso, verdadero);
 	}
 	matrix_distancias_int = gctx_int->matrix_distancias;
-	printf("initializado matrix distancias %p , %ld\n", matrix_distancias_int,
-			*matrix_distancias_int);
 
-	printf("initiado grafo tamanio matrix distancias %d\n",
-			sizeof(gctx_int->matrix_distancias));
 
 	nodo_origen_actual = gctx_int->inicio;
 
-	printf("antes de recorrer nodos origenes\n");
 	while (nodo_origen_actual) {
 		if (nodo_origen_actual->indice == ind_nodo_origen) {
 			(distancias_minimas_nodos + nodo_origen_actual->indice)->valor = 0;
@@ -970,7 +958,6 @@ tipo_dato *antecesores) {
 	}
 	num_nodos = contador;
 
-	printf("antes de niciar cola\n");
 	cola_prioridad_init(&cpctx, distancias_minimas_nodos, NULL, NULL,
 			max_indice + 1, NULL, NULL);
 
@@ -981,7 +968,6 @@ tipo_dato *antecesores) {
 				verdadero;
 
 		indice_origen_actual = nodo_mas_cercas->indice;
-		printf("tratando origen %ld\n", indice_origen_actual);
 
 		for (int j = 0; j < MAX_COLUMNAS_NODOS; j++) {
 			distancia_actual = (tipo_dato) *(matrix_distancias_int
@@ -990,8 +976,6 @@ tipo_dato *antecesores) {
 			if (distancia_actual != GRAFO_VALOR_INVALIDO
 					&& !(*(nodos_distancias_minimas_calculadas
 							+ indice_destino_actual))) {
-				printf("relaxando destino %ld distancia %ld\n",
-						indice_destino_actual, distancia_actual);
 				dijkstra_relaxar_nodo(gctx_int, &cpctx, indice_origen_actual,
 						indice_destino_actual, antecesores);
 			}
@@ -999,7 +983,6 @@ tipo_dato *antecesores) {
 
 		contador++;
 	}
-	printf("calculadas chingaderas\n");
 	*(antecesores + ind_nodo_origen) = 0;
 	for (int i = 0; i < max_indice + 1; i++) {
 		*(distancias_minimas + i) =
@@ -1009,7 +992,6 @@ tipo_dato *antecesores) {
 						(*(cpctx.referencias_directas_por_indice + i))->valor :
 						COLA_PRIORIDAD_VALOR_INVALIDO;
 	}
-	printf("saliendo de la mierda \n");
 
 }
 
@@ -1103,25 +1085,20 @@ void grafo_copia_profunda(const grafo_contexto *ctx_origen,
 	nodo *nodo_destino_principal_actual = NULL;
 	nodo *nodo_destino_principal_previo = NULL;
 
-	printf("dentro de copia profunda %p\n", ctx_origen);
 
 	matrix_origen = ctx_origen->matrix_distancias;
 	matrix_destino = ctx_destino->matrix_distancias;
 	memcpy(matrix_destino, matrix_origen,
 			sizeof(ctx_origen->matrix_distancias));
 
-	printf("copio matrix %p, %ld\n", matrix_destino, *matrix_destino);
 
 	nodo_origen_principal_actual = ctx_origen->inicio;
-	printf("naruto %p\n", nodo_origen_principal_actual);
 	while (nodo_origen_principal_actual) {
 		indice_nodo_origen_actual = nodo_origen_principal_actual->indice;
-		printf("viendo si copiara %ld\n", indice_nodo_origen_actual);
 		if (indices_a_ignorar
 				&& caca_arreglo_contiene(indices_a_ignorar,
 						tam_indices_a_ignorar, indice_nodo_origen_actual)) {
 
-			printf("ignorando %ld\n", indice_nodo_origen_actual);
 			for (int i = 0; i < MAX_FILAS_NODOS; i++) {
 				*(matrix_destino + i * MAX_COLUMNAS_NODOS
 						+ indice_nodo_origen_actual) = GRAFO_VALOR_INVALIDO;
@@ -1132,7 +1109,6 @@ void grafo_copia_profunda(const grafo_contexto *ctx_origen,
 				GRAFO_VALOR_INVALIDO;
 			}
 			GRAFO_AVANZAR_NODO(nodo_origen_principal_actual, 0, 0);
-			printf("ignorado %ld\n", indice_nodo_origen_actual);
 			continue;
 		}
 		nodo_destino_principal_actual = grafo_nodo_alloc(ctx_destino, 1);
@@ -1246,7 +1222,6 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 
 	dijkstra_main(NULL, 0, posicion_incomoda, posicion_inicial,
 			&grafo_inicial_ctx, distancias_minimas, antecesores);
-	printf("termino primer dijs %p\n", grafo_inicial_ctx.inicio);
 
 	*(ruta_maldita + contador_nodos_ruta_maldita++) = posicion_inicial;
 
@@ -1254,30 +1229,23 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 			&& contador_nodos_recorridos < num_nodos + 1) {
 		ancestro_actual = *(antecesores
 				+ *(ruta_maldita + contador_nodos_ruta_maldita - 1));
-		printf("encontrado ancestro actual %ld\n", ancestro_actual);
 		if (ancestro_actual != 0) {
-			printf("guardando ancestro en %d\n", contador_nodos_ruta_maldita);
 			*(ruta_maldita + contador_nodos_ruta_maldita) = ancestro_actual;
 			contador_nodos_ruta_maldita++;
 		} else {
-			printf("salio del ciclo\n");
 			break;
 		}
 		contador_nodos_recorridos++;
 	}
-	printf("sacados todos los ancestros %d\n", contador_nodos_ruta_maldita);
 
 	if (contador_nodos_ruta_maldita < 2) {
 		perror("no c encontraron nodos prohibidos, no mames!");
 		abort();
 	}
 
-	printf("llamando a copia profunda %p %p primer elemento %p\n",
-			grafo_viable_ctx, &grafo_inicial_ctx, (&grafo_inicial_ctx)->inicio);
 	grafo_copia_profunda(&grafo_inicial_ctx, grafo_viable_ctx, ruta_maldita + 1,
 			contador_nodos_ruta_maldita - 1);
 
-	printf("sunda its me\n");
 
 	if (distancia_posicion_incomoda_a_inicial) {
 		*distancia_posicion_incomoda_a_inicial = *(distancias_minimas
@@ -1426,11 +1394,22 @@ float escape_cabron_main() {
 	caca_realinea_array(inicio_aristas, num_aristas,
 	ESCAPE_CABRON_MAX_COLS_INPUT, 3);
 
-	printf("posicion polis %ld, rtas %ld\n", posicion_polis, posicion_ratas);
 	maxima_velocidad = escape_cabron_encuentra_escape(inicio_aristas,
 			num_aristas, posicion_polis, posicion_ratas, salidas, num_salidas);
 
 	return maxima_velocidad;
+}
+
+void arbol_binario_colectar_datos_recorrido_inoder(nodo_arbol_binario *raiz,
+tipo_dato *datos_ordenados, int *num_datos_colectados) {
+	if (!raiz) {
+		return;
+	}
+	arbol_binario_colectar_datos_recorrido_inoder(raiz->hijo_izq,
+			datos_ordenados, num_datos_colectados);
+	*(datos_ordenados + (*num_datos_colectados)++) = raiz->valor;
+	arbol_binario_colectar_datos_recorrido_inoder(raiz->hijo_der,
+			datos_ordenados, num_datos_colectados);
 }
 
 int main(int argc, char *argv[]) {
@@ -1446,16 +1425,4 @@ int main(int argc, char *argv[]) {
 	}
 
 	return 0;
-}
-
-void arbol_binario_colectar_datos_recorrido_inoder(nodo_arbol_binario *raiz,
-tipo_dato *datos_ordenados, int *num_datos_colectados) {
-	if (!raiz) {
-		return;
-	}
-	arbol_binario_colectar_datos_recorrido_inoder(raiz->hijo_izq,
-			datos_ordenados, num_datos_colectados);
-	*(datos_ordenados + (*num_datos_colectados)++) = raiz->valor;
-	arbol_binario_colectar_datos_recorrido_inoder(raiz->hijo_der,
-			datos_ordenados, num_datos_colectados);
 }
