@@ -68,3 +68,7 @@ src/logfile
 *.Po
 
 *.o
+
+*.Po
+src/.deps/main.Po
+src/.libs/libescapecabron.lai

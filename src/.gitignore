@@ -5,3 +5,7 @@
 /Makefile.in
 /escapecabron.c
 /Makefile
+*.Po
+*.o
+
+/main.exe
