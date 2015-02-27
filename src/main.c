@@ -251,7 +251,7 @@ int init_gf(void *matrix, int num_filas, gc *ctx, bo usar_hashes,
 
 	memset(ctx, 0, sizeof(gc));
 
-	matrix_int = (td *)matrix;
+	matrix_int = (td *) matrix;
 	matrix_diss = (td *) ctx->matrix_diss;
 	memset(matrix_diss, GF_vl_INVALIDO, sizeof(ctx->matrix_diss));
 	for (i = 0; i < num_filas; i++) {
@@ -312,7 +312,7 @@ td *datos, int num_datos, nab **arreglo_referencias_nos) {
 	memset((void *) ctx->nos_disponibles, 0, sizeof(ctx->nos_disponibles));
 
 	for (i = 0; i < num_datos; i++) {
-		if (ids && *(ids + i) == (td)ARBOL_AVL_id_INVALIDO) {
+		if (ids && *(ids + i) == (td) ARBOL_AVL_id_INVALIDO) {
 			continue;
 		}
 
@@ -735,10 +735,18 @@ td id, td nuevo_vl) {
 	nab **referencias_directas = NULL;
 	nab **rz = NULL;
 
+
 	referencias_directas = cpctx->referencias_directas_por_id;
 	rz = &cpctx->actx->rz;
 
 	referencia_directa = *(referencias_directas + id);
+				/*
+				XXX: caca
+				*/
+				if (id> 30) {
+					printf("caca\n");
+					exit(0);
+				}
 
 	arbol_avl_borrar_referencia_directa(&cpctx->actx->rz, referencia_directa);
 
@@ -778,6 +786,13 @@ td *antecesores) {
 			*(antecesores + ind_no_ds) = ind_no_or;
 		}
 	}
+				/*
+				XXX: caca
+				*/
+				if (ind_no_ds > 30) {
+					printf("caca\n");
+					exit(0);
+				}
 }
 
 void dijkstra_main(void *matrix_diss, int num_filas,
@@ -793,9 +808,8 @@ td *antecesores) {
 	td max_id = 0;
 	td *matrix_diss_int = NULL;
 
-	gc gctx_mem;
 	gc *gctx_int;
-	cc cpctx;
+	cc *cpctx;
 
 	no *no_or_actual = NULL;
 	nc *no_mas_cercas = NULL;
@@ -805,12 +819,14 @@ td *antecesores) {
 
 	int i, j;
 
+	cpctx = calloc(1, sizeof(cc));
+
 	caca_inutiliza_no_cola_prioridad(diss_minimas_nos, MXN);
 
 	if (gctx) {
 		gctx_int = gctx;
 	} else {
-		gctx_int = &gctx_mem;
+		gctx_int = calloc(1, sizeof(gc));
 		init_gf(matrix_diss, num_filas, gctx_int, falso, verdadero);
 	}
 	matrix_diss_int = (td *) gctx_int->matrix_diss;
@@ -837,12 +853,12 @@ td *antecesores) {
 		contador++;
 	}
 
-	cola_prioridad_init(&cpctx, diss_minimas_nos, NULL, NULL, max_id + 1, NULL,
+	cola_prioridad_init(cpctx, diss_minimas_nos, NULL, NULL, max_id + 1, NULL,
 			NULL);
 
 	contador = 0;
-	while (!cola_prioridad_es_vacia(&cpctx)) {
-		no_mas_cercas = cola_prioridad_pop(&cpctx);
+	while (!cola_prioridad_es_vacia(cpctx)) {
+		no_mas_cercas = cola_prioridad_pop(cpctx);
 		nos_diss_minimas_calculadas[no_mas_cercas->id] = verdadero;
 
 		id_or_actual = no_mas_cercas->id;
@@ -850,22 +866,29 @@ td *antecesores) {
 		for (j = 0; j < MXCN; j++) {
 			dis_actual = (td) *(matrix_diss_int + id_or_actual * MXFN + j);
 			id_ds_actual = j;
-			if (dis_actual != (td)GF_vl_INVALIDO
+			if (dis_actual != (td) GF_vl_INVALIDO
 					&& !(*(nos_diss_minimas_calculadas + id_ds_actual))) {
-				dijkstra_relaxar_no(gctx_int, &cpctx, id_or_actual,
-						id_ds_actual, antecesores);
+				dijkstra_relaxar_no(gctx_int, cpctx, id_or_actual, id_ds_actual,
+						antecesores);
+				/*
+				XXX: caca
+				*/
+				if (j > 30) {
+					printf("caca\n");
+					exit(0);
+				}
 			}
 		}
 
 		contador++;
 	}
 	*(antecesores + ind_no_or) = 0;
-	for (i = 0; (td)i < max_id + 1; i++) {
+	for (i = 0; (td) i < max_id + 1; i++) {
 		*(diss_minimas + i) =
-				(td)i == ind_no_or ? 0 :
+				(td) i == ind_no_or ? 0 :
 				caca_apuntador_valido(
-						(*(cpctx.referencias_directas_por_id + i))) ?
-						(*(cpctx.referencias_directas_por_id + i))->vl :
+						(*(cpctx->referencias_directas_por_id + i))) ?
+						(*(cpctx->referencias_directas_por_id + i))->vl :
 						CP_vl_INVALIDO;
 	}
 
@@ -1037,12 +1060,14 @@ int escape_cabron_determina_nos_viables(void *matrix_aristas, int num_filas,
 	int contador_nos_ruta_maldita = 0;
 	int contador_nos_recorridos = 0;
 	td ancestro_actual = 0;
-	gc gf_inicial_ctx;
+	gc *gf_inicial_ctx;
 
 	td *diss_minimas = NULL, *antecesores = NULL;
 	td *ruta_maldita;
 
-	num_nos = init_gf(matrix_aristas, num_filas, &gf_inicial_ctx, falso,
+	gf_inicial_ctx = calloc(1, sizeof(gc));
+
+	num_nos = init_gf(matrix_aristas, num_filas, gf_inicial_ctx, falso,
 			verdadero);
 
 	diss_minimas = calloc(num_nos + 1, sizeof(td));
@@ -1062,7 +1087,7 @@ int escape_cabron_determina_nos_viables(void *matrix_aristas, int num_filas,
 		exit(-1);
 	}
 
-	dijkstra_main(NULL, 0, posicion_incomoda, posicion_inicial, &gf_inicial_ctx,
+	dijkstra_main(NULL, 0, posicion_incomoda, posicion_inicial, gf_inicial_ctx,
 			diss_minimas, antecesores);
 
 	*(ruta_maldita + contador_nos_ruta_maldita++) = posicion_inicial;
@@ -1085,7 +1110,7 @@ int escape_cabron_determina_nos_viables(void *matrix_aristas, int num_filas,
 		abort();
 	}
 
-	gf_copia_profunda(&gf_inicial_ctx, gf_viable_ctx, ruta_maldita + 1,
+	gf_copia_profunda(gf_inicial_ctx, gf_viable_ctx, ruta_maldita + 1,
 			contador_nos_ruta_maldita - 1);
 
 	if (dis_posicion_incomoda_a_inicial) {
@@ -1205,21 +1230,20 @@ float escape_cabron_main() {
 	td num_salidas = 0;
 	td posicion_ratas = 0, posicion_polis = 0;
 
-	td datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
-			{ { 0 } };
-
-	td *datos_escape = (td *) datos_escape_mem;
+	td *datos_escape = NULL;
 	td *ini_aristas = NULL;
 	td *salidas = NULL;
 
-	lee_matrix_long_stdin((td *) datos_escape_mem, &num_aristas, NULL,
+	datos_escape = calloc(
+	ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT, sizeof(td));
+
+	lee_matrix_long_stdin((td *) datos_escape, &num_aristas, NULL,
 	ESCAPE_CABRON_MAX_FILAS_INPUT, ESCAPE_CABRON_MAX_COLS_INPUT);
 
 	if (!num_aristas) {
 		perror("vale verga, no c leyo nada");
 		abort();
 	}
-
 
 	num_aristas = *(datos_escape + 1);
 	num_salidas = *(datos_escape + 2);

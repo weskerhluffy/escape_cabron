@@ -72,3 +72,5 @@ src/logfile
 *.Po
 src/.deps/main.Po
 src/.libs/libescapecabron.lai
+*.stackdump
+src/main.exe.stackdump
