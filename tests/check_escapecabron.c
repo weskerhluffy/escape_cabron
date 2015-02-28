@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <util.h>
+//#include <util.h>
 #include <math.h>
 #include "../src/escapecabron.h"
 
@@ -140,9 +140,9 @@ START_TEST( test_encuentra_escape_posible)
 				"verga, la velocidad max es %f", resultado);
 	}END_TEST
 
+#define NUM_FILAS  4
 START_TEST( test_encuentra_escape_ultimo_exemplo)
 	{
-		const int NUM_FILAS = 4;
 		const tipo_dato POSICION_INICIAL_BANDIDOS_DE_AMORES = 3;
 		const tipo_dato POSICION_INICIAL_POLICIAS = 4;
 		const tipo_dato VERTICES[NUM_FILAS][3] = {
@@ -180,10 +180,11 @@ START_TEST( test_encuentra_escape_ultimo_exemplo)
 				"verga, la velocidad max es %f", resultado);
 	}END_TEST
 
+#undef NUM_FILAS
+#define NUM_FILAS  7
 START_TEST(test_video_kill)
 	{
 
-		const int NUM_FILAS = 7;
 		const char EOT[] = { 4, '\0' };
 		const float VALOR_ESPERADO = 137.142857143;
 		const char VALORES_ENTRADA[NUM_FILAS][10] = {
@@ -262,6 +263,8 @@ escapecabron_suite(void) {
 	tcase_add_test(tc_core, test_encuentra_escape_posible);
 	tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
 	tcase_add_test(tc_core, test_video_kill);
+	/*
+	*/
 
 	suite_add_tcase(s, tc_core);
 

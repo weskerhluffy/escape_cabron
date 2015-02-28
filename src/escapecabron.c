@@ -8,6 +8,7 @@
  ============================================================================
  */
 
+#include<config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +27,11 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 	grafo_contexto grafo_inicial_ctx;
 
 	char buffer[MAX_TAM_CADENA] = { '\0' };
-//	char *buffer = NULL;
+/* 	char *buffer = NULL; */
 	tipo_dato *distancias_minimas = NULL, *antecesores = NULL;
 	tipo_dato *ruta_maldita;
 
-//	buffer = malloc(MAX_TAM_CADENA * sizeof(char));
+/* 	buffer = malloc(MAX_TAM_CADENA * sizeof(char)); */
 
 	num_nodos = init_grafo(matrix_aristas, num_filas, &grafo_inicial_ctx, falso,
 			verdadero);
@@ -107,6 +108,7 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 		tipo_dato posicion_polis, tipo_dato posicion_ratas,
 		tipo_dato *salidas_carretera, int num_salidas_carretera) {
+	int i;
 	int num_nodos_viables = 0;
 	int num_salidas_viables = 0;
 	float maxima_velocidad = 0;
@@ -182,7 +184,7 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	dijkstra_main(NULL, 0, posicion_ratas, posicion_polis, grafo_viable_ctx,
 			distancias_minimas, antecesores);
 
-	for (int i = 0; i < num_salidas_carretera; i++) {
+	for ( i = 0; i < num_salidas_carretera; i++) {
 		salida_carretera_actual = *(salidas_carretera + i);
 		if ((distancia_salida_carretera_actual = *(distancias_minimas
 				+ salida_carretera_actual)) == MAX_VALOR) {
@@ -244,7 +246,7 @@ float escape_cabron_main() {
 	tipo_dato posicion_ratas = 0, posicion_polis = 0;
 
 	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] = { { 0 } };
-//	tipo_dato *datos_escape_mem = NULL;
+/* 	tipo_dato *datos_escape_mem = NULL; */
 
 	tipo_dato *datos_escape = (tipo_dato *) datos_escape_mem;
 	tipo_dato *inicio_aristas = NULL;

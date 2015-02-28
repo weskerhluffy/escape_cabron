@@ -474,20 +474,29 @@ static void abri(nab **no) {
 	nab *hijo_der_subarbol_izq = NULL;
 
 	no_int = *no;
+	printf("al compas de la %p\n",no_int);
 	hijo_der = no_int->hijo_der;
+	printf("kiero vaila %p\n",hijo_der);
 	hijo_der_subarbol_izq = hijo_der->hijo_izq;
+
+	printf("oye\n");
 
 	no_int->hijo_der = hijo_der_subarbol_izq;
 	hijo_der->hijo_izq = no_int;
+	printf("yo kiero gozar\n");
 
 	AAAP(hijo_der, AAOP(no_int));
 	AAAP(hijo_der_subarbol_izq, no_int);
 	AAAP(no_int, hijo_der);
 
+	printf("la vida\n");
+
 	AAAA(no_int);
 	AAAA(hijo_der);
+	printf("oye mira\n");
 
 	*no = hijo_der;
+	printf("vengo cumb\n");
 
 }
 
@@ -644,6 +653,7 @@ void arbol_avl_borrar_referencia_directa(nab **rz, nab *no_a_borrar) {
 		abort();
 	}
 
+	printf("yo veia \n");
 	if (!(no_a_borrar_padre = AAOP(no_a_borrar))) {
 		no_a_borrar_padre = NULL;
 		no_a_borrar_ref = rz;
@@ -659,6 +669,7 @@ void arbol_avl_borrar_referencia_directa(nab **rz, nab *no_a_borrar) {
 						&no_a_borrar_padre->hijo_der;
 
 	}
+	printf("el tiempo pasar\n");
 
 	ancestro_actual = no_a_borrar->padre;
 	ancestro_actual_apuntador = &no_a_borrar->padre;
@@ -685,6 +696,7 @@ void arbol_avl_borrar_referencia_directa(nab **rz, nab *no_a_borrar) {
 			*no_a_borrar_ref = no_min;
 		}
 	}
+	printf("asta q t \n");
 
 	do {
 		if (!AAOP(no_a_borrar)) {
@@ -702,23 +714,31 @@ void arbol_avl_borrar_referencia_directa(nab **rz, nab *no_a_borrar) {
 			ancestro_actual_apuntador = rz;
 		};
 
+	printf("cumbia cumbia \n");
 		AAAA(ancestro_actual);
 
 		switch (aada(ancestro_actual, 1, verdadero)) {
 		case AAAI:
 
+	printf("en al orill\n");
 			if (aada(ancestro_actual->hijo_izq, 0, falso) == AAAD) {
 				abri(&ancestro_actual->hijo_izq);
 			}
 			abrd(ancestro_actual_apuntador);
 			break;
 		case AAAD:
+	printf("del mar\n");
 			if (aada(ancestro_actual->hijo_der, 0, verdadero) == AAAI) {
+	printf("de colombia\n");
 				abrd(&ancestro_actual->hijo_der);
+	printf("al universo\n");
 			}
+	printf("como cumbiander\n");
 			abri(ancestro_actual_apuntador);
+	printf("q soy\n");
 			break;
 		case AAAB:
+	printf("y no se\n");
 			break;
 		default:
 			break;
@@ -726,6 +746,8 @@ void arbol_avl_borrar_referencia_directa(nab **rz, nab *no_a_borrar) {
 
 		ancestro_actual = ancestro_actual->padre;
 	} while (ancestro_actual);
+
+	printf("conoci\n");
 }
 
 void cola_prioridad_modificar_vl_no(cc *cpctx,
@@ -735,20 +757,14 @@ td id, td nuevo_vl) {
 	nab **referencias_directas = NULL;
 	nab **rz = NULL;
 
-
 	referencias_directas = cpctx->referencias_directas_por_id;
 	rz = &cpctx->actx->rz;
 
 	referencia_directa = *(referencias_directas + id);
-				/*
-				XXX: caca
-				*/
-				if (id> 30) {
-					printf("caca\n");
-					exit(0);
-				}
 
+	printf("casi noduermo %ld %ld\n", id, nuevo_vl);
 	arbol_avl_borrar_referencia_directa(&cpctx->actx->rz, referencia_directa);
+	printf("pensando en ti\n");
 
 	nuevo_no = aba(cpctx->actx, 1);
 	memset(nuevo_no, 0, sizeof(nab));
@@ -780,19 +796,14 @@ td *antecesores) {
 	dis_min_ds = *(diss_minimas + ind_no_ds);
 
 	if (dis_min_ds->vl > dis_min_or->vl + dist_or_dest) {
+		printf("todas las nachas %ld\n", dist_or_dest);
 		cola_prioridad_modificar_vl_no(cpctx, ind_no_ds,
 				dis_min_or->vl + dist_or_dest);
+		printf("suenio contigo\n");
 		if (antecesores) {
 			*(antecesores + ind_no_ds) = ind_no_or;
 		}
 	}
-				/*
-				XXX: caca
-				*/
-				if (ind_no_ds > 30) {
-					printf("caca\n");
-					exit(0);
-				}
 }
 
 void dijkstra_main(void *matrix_diss, int num_filas,
@@ -818,6 +829,8 @@ td *antecesores) {
 	nc diss_minimas_nos[MXN];
 
 	int i, j;
+
+	printf("en dijkstra\n");
 
 	cpctx = calloc(1, sizeof(cc));
 
@@ -857,6 +870,7 @@ td *antecesores) {
 			NULL);
 
 	contador = 0;
+	printf("nunca volvio\n");
 	while (!cola_prioridad_es_vacia(cpctx)) {
 		no_mas_cercas = cola_prioridad_pop(cpctx);
 		nos_diss_minimas_calculadas[no_mas_cercas->id] = verdadero;
@@ -868,20 +882,15 @@ td *antecesores) {
 			id_ds_actual = j;
 			if (dis_actual != (td) GF_vl_INVALIDO
 					&& !(*(nos_diss_minimas_calculadas + id_ds_actual))) {
+				printf("caminando %ld %ld\n", id_or_actual, id_ds_actual);
 				dijkstra_relaxar_no(gctx_int, cpctx, id_or_actual, id_ds_actual,
 						antecesores);
-				/*
-				XXX: caca
-				*/
-				if (j > 30) {
-					printf("caca\n");
-					exit(0);
-				}
 			}
 		}
 
 		contador++;
 	}
+	printf("se fue raqu\n");
 	*(antecesores + ind_no_or) = 0;
 	for (i = 0; (td) i < max_id + 1; i++) {
 		*(diss_minimas + i) =
@@ -891,6 +900,7 @@ td *antecesores) {
 						(*(cpctx->referencias_directas_por_id + i))->vl :
 						CP_vl_INVALIDO;
 	}
+	printf("salio de dik\n");
 
 }
 
@@ -1256,6 +1266,7 @@ float escape_cabron_main() {
 	caca_realinea_array(ini_aristas, num_aristas,
 	ESCAPE_CABRON_MAX_COLS_INPUT, 3);
 
+	printf("se fue\n");
 	maxima_velocidad = escape_cabron_encuentra_escape(ini_aristas, num_aristas,
 			posicion_polis, posicion_ratas, salidas, num_salidas);
 

@@ -5,6 +5,7 @@
  *      Author: ernesto
  */
 
+#include<config.h>
 #include<cacacomun.h>
 
 #ifndef ESCAPECABRON_H_
@@ -20,8 +21,8 @@ int escape_cabron_determina_nodos_viables(void *matrix_vertices, int num_filas,
 		tipo_dato *distancia_posicion_incomoda_a_inicial);
 
 float escape_cabron_encuentra_escape(void *matrix_vertices, int num_filas,
-		tipo_dato posicion_polis, tipo_dato posicion_ratas,
-		tipo_dato *salidas_carretera, int num_salidas_carretera);
+tipo_dato posicion_polis, tipo_dato posicion_ratas,
+tipo_dato *salidas_carretera, int num_salidas_carretera);
 
 float escape_cabron_main();
 
