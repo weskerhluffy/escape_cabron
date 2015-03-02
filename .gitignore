@@ -75,3 +75,11 @@ src/.libs/libescapecabron.lai
 *.stackdump
 src/main.exe.stackdump
 /config.h.in~
+
+*.Po
+
+libs.txt
+
+*.o
+
+src/main.o

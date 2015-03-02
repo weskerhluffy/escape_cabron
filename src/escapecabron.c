@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_EXECINFO_H
+#	include <execinfo.h>
+#endif
 #include <cacacomun.h>
 #include "escapecabron.h"
 
@@ -26,12 +29,11 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 	tipo_dato ancestro_actual = 0;
 	grafo_contexto grafo_inicial_ctx;
 
-	char buffer[MAX_TAM_CADENA] = { '\0' };
-/* 	char *buffer = NULL; */
+	char *buffer = NULL;
 	tipo_dato *distancias_minimas = NULL, *antecesores = NULL;
 	tipo_dato *ruta_maldita;
 
-/* 	buffer = malloc(MAX_TAM_CADENA * sizeof(char)); */
+	buffer = malloc(MAX_TAM_CADENA * sizeof(char));
 
 	num_nodos = init_grafo(matrix_aristas, num_filas, &grafo_inicial_ctx, falso,
 			verdadero);
@@ -91,9 +93,6 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 	caca_log_debug("la ruta maldita kedo %s",
 			caca_arreglo_a_cadena(ruta_maldita, contador_nodos_ruta_maldita,
 					buffer));
-
-	caca_log_debug("el grafo initial antes de ser copiado");
-	imprimir_lista_adjacencia(grafo_inicial_ctx.inicio);
 
 	grafo_copia_profunda(&grafo_inicial_ctx, grafo_viable_ctx, ruta_maldita + 1,
 			contador_nodos_ruta_maldita - 1);
@@ -184,7 +183,7 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	dijkstra_main(NULL, 0, posicion_ratas, posicion_polis, grafo_viable_ctx,
 			distancias_minimas, antecesores);
 
-	for ( i = 0; i < num_salidas_carretera; i++) {
+	for (i = 0; i < num_salidas_carretera; i++) {
 		salida_carretera_actual = *(salidas_carretera + i);
 		if ((distancia_salida_carretera_actual = *(distancias_minimas
 				+ salida_carretera_actual)) == MAX_VALOR) {
@@ -245,23 +244,24 @@ float escape_cabron_main() {
 	tipo_dato num_nodos = 0, num_salidas = 0;
 	tipo_dato posicion_ratas = 0, posicion_polis = 0;
 
-	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] = { { 0 } };
-/* 	tipo_dato *datos_escape_mem = NULL; */
+	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
+			{ { 0 } };
+	/* 	tipo_dato *datos_escape_mem = NULL; */
 
 	tipo_dato *datos_escape = (tipo_dato *) datos_escape_mem;
 	tipo_dato *inicio_aristas = NULL;
 	tipo_dato *salidas = NULL;
 
 	/*
-	datos_escape_mem = calloc(
-			ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT,
-			sizeof(tipo_dato));
-	if (!datos_escape_mem) {
-		perror("no se obtubo memoria para los datos del escape");
-		abort();
-	}
-	datos_escape = datos_escape_mem;
-	*/
+	 datos_escape_mem = calloc(
+	 ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT,
+	 sizeof(tipo_dato));
+	 if (!datos_escape_mem) {
+	 perror("no se obtubo memoria para los datos del escape");
+	 abort();
+	 }
+	 datos_escape = datos_escape_mem;
+	 */
 
 	lee_matrix_long_stdin((tipo_dato *) datos_escape_mem, &num_aristas, NULL,
 			ESCAPE_CABRON_MAX_FILAS_INPUT, ESCAPE_CABRON_MAX_COLS_INPUT);
@@ -290,6 +290,5 @@ float escape_cabron_main() {
 			num_aristas, posicion_polis, posicion_ratas, salidas, num_salidas);
 
 	caca_log_debug("la maxima velocida calculada %f", maxima_velocidad);
-
 	return maxima_velocidad;
 }

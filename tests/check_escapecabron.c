@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-//#include <util.h>
+#include <util.h>
 #include <math.h>
 #include "../src/escapecabron.h"
 
