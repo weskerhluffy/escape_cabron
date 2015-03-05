@@ -185,12 +185,21 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 
 	for (i = 0; i < num_salidas_carretera; i++) {
 		salida_carretera_actual = *(salidas_carretera + i);
+		if (salida_carretera_actual == posicion_polis) {
+			caca_log_debug("No mames la salida es donde estan los polis %ld",
+					salida_carretera_actual);
+			continue;
+		}
 		if ((distancia_salida_carretera_actual = *(distancias_minimas
-				+ salida_carretera_actual)) == MAX_VALOR) {
+				+ salida_carretera_actual)) == MAX_VALOR
+				|| distancia_salida_carretera_actual
+						== COLA_PRIORIDAD_VALOR_INVALIDO) {
 			caca_log_debug("Mierda, la salida %ld es inalcanzable",
 					salida_carretera_actual);
 			continue;
 		}
+		caca_log_debug("Salida a carretera %ld es viable con %ld",
+				salida_carretera_actual, distancia_salida_carretera_actual);
 		*(distancias_salidas_carretera + num_salidas_viables) =
 				distancia_salida_carretera_actual;
 		*(salidas_carretera_viables + num_salidas_viables) =
@@ -216,7 +225,7 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	}
 
 	cola_prioridad_init(cola_salidas_carretera, NULL, salidas_carretera_viables,
-			distancias_salidas_carretera, num_salidas_carretera, NULL, NULL );
+			distancias_salidas_carretera, num_salidas_viables, NULL, NULL );
 
 	if (cola_prioridad_es_vacia(cola_salidas_carretera)) {
 		return maxima_velocidad;

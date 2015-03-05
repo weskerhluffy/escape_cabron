@@ -70,8 +70,8 @@ src/logfile
 *.o
 
 *.Po
-src/.deps/main.Po
-src/.libs/libescapecabron.lai
+src/.deps
+src/.libs
 *.stackdump
 src/main.exe.stackdump
 /config.h.in~

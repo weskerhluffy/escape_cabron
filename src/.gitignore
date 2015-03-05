@@ -4,9 +4,9 @@
 /Makefile
 /Makefile.in
 /escapecabron.c
-/Makefile
+/Makefile
 *.Po
 *.o
-
 /main.exe
 /stringinfo
+/.deps
