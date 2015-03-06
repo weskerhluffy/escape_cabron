@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 /*
@@ -44,6 +43,14 @@
 typedef enum BOOLEANOS {
 	falso = 0, verdadero
 } bool;
+
+#define INIT_ZLOG_CATEGORY(cacategoria,nombre_cacategoria) \
+	cacategoria = zlog_get_category(nombre_cacategoria); \
+	if (!cacategoria) { \
+		printf("get cacategoria %s fail\n",nombre_cacategoria); \
+		zlog_fini(); \
+		exit(-2); \
+	} \
 
 #define GRAFO_AVANZAR_NODO(nodo_apuntador,criterio_busqueda,discriminar_principal) \
 		nodo_apuntador = (nodo_apuntador)->siguiente;
@@ -265,6 +272,8 @@ void arbol_avl_init(arbol_binario_contexto *ctx, tipo_dato *indices,
 nodo_arbol_binario *arbol_binario_nodo_allocar(arbol_binario_contexto *ctx,
 		int localidades_solicitadas);
 
+void arbol_binario_recorrido_preoder(nodo_arbol_binario *raiz);
+
 void arbol_avl_insertar(nodo_arbol_binario **raiz,
 		nodo_arbol_binario *nodo_a_insertar, bool no_indices_repetidos);
 
@@ -279,7 +288,10 @@ void arbol_binario_rotar_der(nodo_arbol_binario **nodo);
 void arbol_binario_borrar_nodo(nodo_arbol_binario **raiz,
 		tipo_dato valor_a_borrar);
 
+void arbol_binario_colectar_datos_recorrido_inoder(nodo_arbol_binario *raiz,
+		tipo_dato *datos_ordenados, int *num_datos_colectados);
 
+void arbol_binario_recorrido_inoder(nodo_arbol_binario *raiz);
 
 void arbol_avl_borrar(nodo_arbol_binario **raiz, tipo_dato valor_a_borrar);
 
@@ -565,6 +577,7 @@ void arbol_avl_insertar(nodo_arbol_binario **raiz,
 		break;
 	}
 
+	arbol_binario_recorrido_preoder(*raiz);
 }
 
 int arbol_avl_compara_nodos(nodo_arbol_binario *nodo1,
@@ -663,6 +676,16 @@ void arbol_binario_borrar_nodo(nodo_arbol_binario **raiz,
 		}
 	}
 
+}
+
+void arbol_binario_recorrido_inoder(nodo_arbol_binario *raiz) {
+	char buffer[MAX_TAM_CADENA];
+	if (!raiz) {
+		return;
+	}
+	arbol_binario_recorrido_inoder(raiz->hijo_izq);
+
+	arbol_binario_recorrido_inoder(raiz->hijo_der);
 }
 
 void arbol_avl_borrar(nodo_arbol_binario **raiz, tipo_dato valor_a_borrar) {
@@ -879,10 +902,12 @@ void cola_prioridad_modificar_valor_nodo(cola_prioridad_contexto *cpctx,
 
 	referencia_directa = *(referencias_directas + indice);
 
+	arbol_binario_recorrido_inoder(cpctx->actx->raiz);
 
 	arbol_avl_borrar_referencia_directa(&cpctx->actx->raiz, referencia_directa,
 			NULL );
 
+	arbol_binario_recorrido_inoder(cpctx->actx->raiz);
 
 	nuevo_nodo = arbol_binario_nodo_allocar(cpctx->actx, 1);
 	memset(nuevo_nodo, 0, sizeof(nodo_arbol_binario));
@@ -891,6 +916,7 @@ void cola_prioridad_modificar_valor_nodo(cola_prioridad_contexto *cpctx,
 
 	arbol_avl_insertar(raiz, nuevo_nodo, falso);
 
+	arbol_binario_recorrido_inoder(cpctx->actx->raiz);
 
 	*(referencias_directas + indice) = nuevo_nodo;
 }
@@ -929,6 +955,7 @@ void dijkstra_main(void *matrix_distancias, int num_filas,
 		tipo_dato ind_nodo_origen, tipo_dato ind_nodo_destino,
 		grafo_contexto *gctx, tipo_dato *distancias_minimas,
 		tipo_dato *antecesores) {
+
 	int contador = 0;
 	int num_nodos = 0;
 
@@ -984,6 +1011,8 @@ void dijkstra_main(void *matrix_distancias, int num_filas,
 
 	cola_prioridad_init(&cpctx, distancias_minimas_nodos, NULL, NULL,
 			max_indice + 1, NULL, NULL );
+
+	arbol_binario_recorrido_preoder(cpctx.actx->raiz);
 
 	contador = 0;
 	while (!cola_prioridad_es_vacia(&cpctx)) {
@@ -1216,6 +1245,18 @@ int arbol_avl_diferencia_alturas_subarboles(nodo_arbol_binario *nodo,
 	}
 }
 
+void arbol_binario_colectar_datos_recorrido_inoder(nodo_arbol_binario *raiz,
+		tipo_dato *datos_ordenados, int *num_datos_colectados) {
+	if (!raiz) {
+		return;
+	}
+	arbol_binario_colectar_datos_recorrido_inoder(raiz->hijo_izq,
+			datos_ordenados, num_datos_colectados);
+	*(datos_ordenados + (*num_datos_colectados)++) = raiz->valor;
+	arbol_binario_colectar_datos_recorrido_inoder(raiz->hijo_der,
+			datos_ordenados, num_datos_colectados);
+}
+
 void arbol_binario_rotar_der(nodo_arbol_binario **nodo) {
 	nodo_arbol_binario *nodo_int = NULL;
 	nodo_arbol_binario *hijo_izq = NULL;
@@ -1293,22 +1334,28 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 	memset(antecesores, DIJKSTRA_VALOR_INVALIDO,
 			(num_nodos + 1) * sizeof(tipo_dato));
 	ruta_maldita = calloc(num_nodos + 1, sizeof(tipo_dato));
-
+	
 	if (!ruta_maldita) {
 		perror("no se consigio memoria para ruta_maldita");
 		exit(EXIT_FAILURE);
 	}
 
+	
 	dijkstra_main(NULL, 0, posicion_incomoda, posicion_inicial,
 			&grafo_inicial_ctx, distancias_minimas, antecesores);
 
+	
+
+	
+
+	
 	*(ruta_maldita + contador_nodos_ruta_maldita++) = posicion_inicial;
 
 	while (*(ruta_maldita + contador_nodos_ruta_maldita) != posicion_incomoda
 			&& contador_nodos_recorridos < num_nodos + 1) {
 		ancestro_actual = *(antecesores
 				+ *(ruta_maldita + contador_nodos_ruta_maldita - 1));
-
+		
 		if (ancestro_actual != 0) {
 			*(ruta_maldita + contador_nodos_ruta_maldita) = ancestro_actual;
 			contador_nodos_ruta_maldita++;
@@ -1322,6 +1369,8 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 		perror("no c encontraron nodos prohibidos, no mames!");
 		abort();
 	}
+
+	
 
 	grafo_copia_profunda(&grafo_inicial_ctx, grafo_viable_ctx, ruta_maldita + 1,
 			contador_nodos_ruta_maldita - 1);
@@ -1356,6 +1405,14 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 
 	buffer = calloc(1000, sizeof(char));
 
+	
+	
+	
+	
+	
+	
+	caca_imprime_matrix(matrix_aristas, num_filas, NULL, 3);
+
 	grafo_viable_ctx = calloc(1, sizeof(grafo_contexto));
 	if (!grafo_viable_ctx) {
 		perror("no se consigio memoria para grafo viable");
@@ -1365,6 +1422,8 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	num_nodos_viables = escape_cabron_determina_nodos_viables(matrix_aristas,
 			num_filas, grafo_viable_ctx, posicion_polis, posicion_ratas,
 			&distancia_polis_a_ratas);
+
+	
 
 	if (num_nodos_viables < 2) {
 		return maxima_velocidad;
@@ -1403,23 +1462,26 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	for (i = 0; i < num_salidas_carretera; i++) {
 		salida_carretera_actual = *(salidas_carretera + i);
 		if (salida_carretera_actual == posicion_polis) {
-
+			
 			continue;
 		}
 		if ((distancia_salida_carretera_actual = *(distancias_minimas
 				+ salida_carretera_actual)) == MAX_VALOR
 				|| distancia_salida_carretera_actual
 						== COLA_PRIORIDAD_VALOR_INVALIDO) {
-
+			
 			continue;
 		}
-
+		
 		*(distancias_salidas_carretera + num_salidas_viables) =
 				distancia_salida_carretera_actual;
 		*(salidas_carretera_viables + num_salidas_viables) =
 				salida_carretera_actual;
 		num_salidas_viables++;
 	}
+
+	
+	
 
 	if (!num_salidas_viables) {
 		return maxima_velocidad;
@@ -1439,6 +1501,7 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	}
 
 	nodo_salida_mas_cercana = cola_prioridad_pop(cola_salidas_carretera);
+	
 
 	distancia_recorrida_polis = nodo_salida_mas_cercana->indice
 			+ distancia_polis_a_ratas;
@@ -1458,24 +1521,30 @@ float escape_cabron_main() {
 	tipo_dato num_nodos = 0, num_salidas = 0;
 	tipo_dato posicion_ratas = 0, posicion_polis = 0;
 
-	/*	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
-	 { { 0 } };
-	 */
+	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
+			{ { 0 } };
+	/* 	tipo_dato *datos_escape_mem = NULL; */
 
-	tipo_dato *datos_escape = NULL;
+	tipo_dato *datos_escape = (tipo_dato *) datos_escape_mem;
 	tipo_dato *inicio_aristas = NULL;
 	tipo_dato *salidas = NULL;
 
-	datos_escape = calloc(
-			ESCAPE_CABRON_MAX_COLS_INPUT * ESCAPE_CABRON_MAX_FILAS_INPUT,
-			sizeof(tipo_dato));
-	if (!datos_escape) {
-		perror("no se pudo obtener memoria para datos_Escape");
-		abort();
-	}
+	/*
+	 datos_escape_mem = calloc(
+	 ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT,
+	 sizeof(tipo_dato));
+	 if (!datos_escape_mem) {
+	 perror("no se obtubo memoria para los datos del escape");
+	 abort();
+	 }
+	 datos_escape = datos_escape_mem;
+	 */
 
-	lee_matrix_long_stdin((tipo_dato *) datos_escape, &num_aristas, NULL,
+	lee_matrix_long_stdin((tipo_dato *) datos_escape_mem, &num_aristas, NULL,
 			ESCAPE_CABRON_MAX_FILAS_INPUT, ESCAPE_CABRON_MAX_COLS_INPUT);
+	
+	caca_imprime_matrix(datos_escape_mem, num_aristas, NULL,
+			ESCAPE_CABRON_MAX_COLS_INPUT);
 
 	if (!num_aristas) {
 		perror("vale verga, no c leyo nada");
@@ -1497,18 +1566,11 @@ float escape_cabron_main() {
 	maxima_velocidad = escape_cabron_encuentra_escape(inicio_aristas,
 			num_aristas, posicion_polis, posicion_ratas, salidas, num_salidas);
 
+	
 	return maxima_velocidad;
 }
 
 int main(int argc, char *argv[]) {
-	float resultado = 0;
-
-	resultado = escape_cabron_main();
-	if (resultado) {
-		printf("%.10f\n", resultado);
-	} else {
-		printf("IMPOSSIBLE\n");
-	}
 
 	return 0;
 }
