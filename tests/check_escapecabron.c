@@ -632,6 +632,163 @@ START_TEST(test_stresar_salidas_viable)
 		}
 	}END_TEST
 
+#undef NUM_FILAS
+#define NUM_FILAS  104
+START_TEST(test_max_nodos)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 0;
+		const char VALORES_ENTRADA[NUM_FILAS][29] = { { "50 51 5\n" }, {
+				"1 2 1\n" }, { "2 3 1\n" }, { "3 25 100\n" }, { "4 3 1\n" }, {
+				"4 3 1\n" }, { "5 3 1\n" }, { "6 3 1\n" }, { "7 3 1\n" }, {
+				"8 3 1\n" }, { "9 3 1\n" }, { "10 3 452\n" }, { "11 3 1\n" }, {
+				"12 3 1\n" }, { "13 3 1\n" }, { "14 3 1\n" }, { "15 3 1\n" }, {
+				"16 3 1\n" }, { "17 3 1\n" }, { "18 3 1\n" }, { "19 3 5\n" }, {
+				"20 3 1\n" }, { "21 3 1\n" }, { "22 3 1\n" }, { "23 3 1\n" }, {
+				"24 3 1\n" }, { "25 3 1\n" }, { "26 3 1\n" }, { "27 3 1\n" }, {
+				"28 3 1\n" }, { "29 3 1\n" }, { "30 3 100\n" }, { "31 3 31\n" },
+				{ "32 3 32\n" }, { "33 3 33\n" }, { "34 3 34\n" },
+				{ "35 3 35\n" }, { "36 3 36\n" }, { "37 3 37\n" },
+				{ "38 3 38\n" }, { "39 3 39\n" }, { "40 3 40\n" },
+				{ "41 3 41\n" }, { "42 3 42\n" }, { "43 3 43\n" },
+				{ "44 3 44\n" }, { "45 3 45\n" }, { "46 3 46\n" },
+				{ "47 3 47\n" }, { "48 3 48\n" }, { "49 3 49\n" },
+				{ "50 3 50\n" }, { "3 6 9 12 15\n" }, { "27 18\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		printf("ya forkeo\n");
+// XXX: http://stackoverflow.com/questions/20161144/command-line-application-how-to-attach-a-child-process-to-xcode-debugger
+#ifdef DEBUG
+		kill(0, SIGSTOP);
+#endif
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+		printf("si se izo pid\n");
+
+		*resultado_assestment = -1;
+
+		if (!pid) {
+			printf("q pedo\n");
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			printf("me corto las pelotas\n");
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  54
+START_TEST(test_max_nodos_posible)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 20.579374;
+		const char VALORES_ENTRADA[NUM_FILAS][29] = { { "50 51 5\n" }, {
+				"1 2 1\n" }, { "2 3 1\n" }, { "3 25 100\n" }, { "4 3 1\n" }, {
+				"5 3 1\n" }, { "6 3 1\n" }, { "7 3 1\n" }, { "8 3 1\n" }, {
+				"9 3 1\n" }, { "10 3 452\n" }, { "11 3 1\n" }, { "12 3 1\n" }, {
+				"13 3 1\n" }, { "14 3 1\n" }, { "15 3 1\n" }, { "16 3 1\n" }, {
+				"17 3 1\n" }, { "18 44 1000\n" }, { "19 3 5\n" }, { "20 3 1\n" },
+				{ "21 3 1\n" }, { "22 3 1\n" }, { "23 3 1\n" }, { "24 3 1\n" },
+				{ "25 3 1\n" }, { "26 3 1\n" }, { "27 44 312\n" }, { "28 3 1\n" },
+				{ "29 3 1\n" }, { "30 3 100\n" }, { "31 3 31\n" }, { "32 3 32\n" }, {
+						"33 3 33\n" }, { "34 3 34\n" }, { "35 3 35\n" }, { "36 3 36\n" },
+						{ "37 3 37\n" }, { "38 3 38\n" }, { "39 3 39\n" }, { "40 3 40\n" }, { "41 3 41\n" }, {
+						"42 3 42\n" }, { "43 3 43\n" }, { "44 18 440\n" }, {
+						"45 3 45\n" }, { "46 3 46\n" }, { "47 3 47\n" }, {
+						"48 3 48\n" }, { "49 3 49\n" }, { "50 3 50\n" }, {
+						"27 3 111\n" }, { "3 6 9 12 15\n" }, { "27 18\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		printf("ya forkeo\n");
+// XXX: http://stackoverflow.com/questions/20161144/command-line-application-how-to-attach-a-child-process-to-xcode-debugger
+#ifdef DEBUG
+		kill(0, SIGSTOP);
+#endif
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+		printf("si se izo pid\n");
+
+		*resultado_assestment = -1;
+
+		if (!pid) {
+			printf("q pedo\n");
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			printf("me corto las pelotas\n");
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
 Suite *
 escapecabron_suite(void) {
 	Suite *s = suite_create("Escape de mierda");
@@ -639,19 +796,21 @@ escapecabron_suite(void) {
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
 	tcase_set_timeout(tc_core, 600);
-	tcase_add_test(tc_core, test_determina_nodos_viables);
-	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
-	tcase_add_test(tc_core, test_encuentra_escape_imposible);
-	tcase_add_test(tc_core, test_encuentra_escape_posible);
-	tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
-	tcase_add_test(tc_core, test_video_kill);
 	/*
-	*/
-	tcase_add_test(tc_core, test_radio_star);
-	tcase_add_test(tc_core, test_stresar_salidas);
-	tcase_add_test(tc_core, test_stresar_salidas_viable);
+	 tcase_add_test(tc_core, test_determina_nodos_viables);
+	 tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
+	 tcase_add_test(tc_core, test_encuentra_escape_imposible);
+	 tcase_add_test(tc_core, test_encuentra_escape_posible);
+	 tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
+	 tcase_add_test(tc_core, test_video_kill);
+	 tcase_add_test(tc_core, test_radio_star);
+	 tcase_add_test(tc_core, test_stresar_salidas);
+	 tcase_add_test(tc_core, test_stresar_salidas_viable);
+	 tcase_add_test(tc_core, test_max_nodos);
+	 */
+	tcase_add_test(tc_core, test_max_nodos_posible);
 	/*
-	*/
+	 */
 
 	suite_add_tcase(s, tc_core);
 

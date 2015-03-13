@@ -116,10 +116,11 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	tipo_dato distancia_salida_carretera_actual = 0;
 	tipo_dato distancia_polis_a_ratas = 0;
 	tipo_dato distancia_recorrida_polis = 0;
+	tipo_dato min_distancia_salida = MAX_VALOR;
+	tipo_dato ind_min_distancia_salida = 0;
 	char *buffer = NULL;
 	nodo_cola_prioridad *nodo_salida_mas_cercana = NULL;
 	grafo_contexto *grafo_viable_ctx = NULL;
-	cola_prioridad_contexto *cola_salidas_carretera = NULL;
 	tipo_dato *distancias_minimas = NULL;
 	tipo_dato *antecesores = NULL;
 	tipo_dato *distancias_salidas_carretera = NULL;
@@ -218,20 +219,22 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 		return maxima_velocidad;
 	}
 
-	cola_salidas_carretera = calloc(1, sizeof(cola_prioridad_contexto));
-	if (!antecesores) {
-		perror("no se consigio memoria para cola de distancias a salidas");
-		abort();
+	for (i = 0; i < num_salidas_viables; i++) {
+		distancia_salida_carretera_actual = *(distancias_salidas_carretera + i);
+		if (distancia_salida_carretera_actual < min_distancia_salida) {
+			min_distancia_salida = distancia_salida_carretera_actual;
+			ind_min_distancia_salida = *(salidas_carretera_viables + i);
+		}
 	}
 
-	cola_prioridad_init(cola_salidas_carretera, NULL, salidas_carretera_viables,
-			distancias_salidas_carretera, num_salidas_viables, NULL, NULL );
+	caca_log_debug("la salida mas cercana %ld a %ld km",
+			ind_min_distancia_salida, min_distancia_salida);
 
-	if (cola_prioridad_es_vacia(cola_salidas_carretera)) {
-		return maxima_velocidad;
-	}
+	nodo_salida_mas_cercana = calloc(1, sizeof(nodo_cola_prioridad));
+	COLA_PRIORIDAD_ASIGNA_VALOR(nodo_salida_mas_cercana,
+			ind_min_distancia_salida);
+	COLA_PRIORIDAD_ASIGNA_INDICE(nodo_salida_mas_cercana, min_distancia_salida);
 
-	nodo_salida_mas_cercana = cola_prioridad_pop(cola_salidas_carretera);
 	caca_log_debug("La salida mas cercana es %ld, con distancia %ld",
 			nodo_salida_mas_cercana->valor, nodo_salida_mas_cercana->indice);
 
