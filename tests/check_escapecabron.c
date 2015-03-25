@@ -134,7 +134,8 @@ START_TEST( test_encuentra_escape_posible)
 		resultado = escape_cabron_encuentra_escape((void *) VERTICES, 2,
 				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
 				(tipo_dato *) SALIDAS_A_CARRETERA, 1);
-		caca_log_debug("velocidad maxima %f", resultado);
+		caca_log_debug("velocidad maxima resultante %f, esperada %f", resultado,
+				RESULTADO_ESPERADO);
 
 		ck_assert_msg(resultado &&resultado-RESULTADO_ESPERADO< ERROR_MAXIMO,
 				"verga, la velocidad max es %f", resultado);
@@ -256,7 +257,7 @@ START_TEST(test_radio_star)
 	{
 
 		const char EOT[] = { 4, '\0' };
-		const float VALOR_ESPERADO = 0;
+		const float VALOR_ESPERADO = 160;
 		const char VALORES_ENTRADA[NUM_FILAS][14] = {
 
 		{ "30 30 5\n" },
@@ -382,7 +383,7 @@ START_TEST(test_stresar_salidas)
 	{
 
 		const char EOT[] = { 4, '\0' };
-		const float VALOR_ESPERADO = 0;
+		const float VALOR_ESPERADO = 160;
 		const char VALORES_ENTRADA[NUM_FILAS][29] = {
 
 		{ "30 30 10\n" },
@@ -508,7 +509,7 @@ START_TEST(test_stresar_salidas_viable)
 	{
 
 		const char EOT[] = { 4, '\0' };
-		const float VALOR_ESPERADO = 150.857147;
+		const float VALOR_ESPERADO = 53.333333;
 		const char VALORES_ENTRADA[NUM_FILAS][29] = {
 
 		{ "30 32 10\n" },
@@ -549,7 +550,7 @@ START_TEST(test_stresar_salidas_viable)
 
 		{ "17 3 1\n" },
 
-		{ "18 3 1\n" },
+		{ "18 25 1\n" },
 
 		{ "19 3 5\n" },
 
@@ -638,7 +639,7 @@ START_TEST(test_max_nodos)
 	{
 
 		const char EOT[] = { 4, '\0' };
-		const float VALOR_ESPERADO = 0;
+		const float VALOR_ESPERADO = 160;
 		const char VALORES_ENTRADA[NUM_FILAS][29] = { { "50 51 5\n" }, {
 				"1 2 1\n" }, { "2 3 1\n" }, { "3 25 100\n" }, { "4 3 1\n" }, {
 				"4 3 1\n" }, { "5 3 1\n" }, { "6 3 1\n" }, { "7 3 1\n" }, {
@@ -723,12 +724,14 @@ START_TEST(test_max_nodos_posible)
 				"5 3 1\n" }, { "6 3 1\n" }, { "7 3 1\n" }, { "8 3 1\n" }, {
 				"9 3 1\n" }, { "10 3 452\n" }, { "11 3 1\n" }, { "12 3 1\n" }, {
 				"13 3 1\n" }, { "14 3 1\n" }, { "15 3 1\n" }, { "16 3 1\n" }, {
-				"17 3 1\n" }, { "18 44 1000\n" }, { "19 3 5\n" }, { "20 3 1\n" },
-				{ "21 3 1\n" }, { "22 3 1\n" }, { "23 3 1\n" }, { "24 3 1\n" },
-				{ "25 3 1\n" }, { "26 3 1\n" }, { "27 44 312\n" }, { "28 3 1\n" },
-				{ "29 3 1\n" }, { "30 3 100\n" }, { "31 3 31\n" }, { "32 3 32\n" }, {
-						"33 3 33\n" }, { "34 3 34\n" }, { "35 3 35\n" }, { "36 3 36\n" },
-						{ "37 3 37\n" }, { "38 3 38\n" }, { "39 3 39\n" }, { "40 3 40\n" }, { "41 3 41\n" }, {
+				"17 3 1\n" }, { "18 44 1000\n" }, { "19 3 5\n" },
+				{ "20 3 1\n" }, { "21 3 1\n" }, { "22 3 1\n" }, { "23 3 1\n" },
+				{ "24 3 1\n" }, { "25 3 1\n" }, { "26 3 1\n" },
+				{ "27 44 312\n" }, { "28 3 1\n" }, { "29 3 1\n" }, {
+						"30 3 100\n" }, { "31 3 31\n" }, { "32 3 32\n" }, {
+						"33 3 33\n" }, { "34 3 34\n" }, { "35 3 35\n" }, {
+						"36 3 36\n" }, { "37 3 37\n" }, { "38 3 38\n" }, {
+						"39 3 39\n" }, { "40 3 40\n" }, { "41 3 41\n" }, {
 						"42 3 42\n" }, { "43 3 43\n" }, { "44 18 440\n" }, {
 						"45 3 45\n" }, { "46 3 46\n" }, { "47 3 47\n" }, {
 						"48 3 48\n" }, { "49 3 49\n" }, { "50 3 50\n" }, {
@@ -796,19 +799,25 @@ escapecabron_suite(void) {
 	/* Core test case */
 	TCase *tc_core = tcase_create("Core");
 	tcase_set_timeout(tc_core, 600);
+#ifdef DEBUG
+	sleep(5);
+#endif
 	/*
-	 tcase_add_test(tc_core, test_determina_nodos_viables);
-	 tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
-	 tcase_add_test(tc_core, test_encuentra_escape_imposible);
-	 tcase_add_test(tc_core, test_encuentra_escape_posible);
-	 tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
-	 tcase_add_test(tc_core, test_video_kill);
-	 tcase_add_test(tc_core, test_radio_star);
-	 tcase_add_test(tc_core, test_stresar_salidas);
-	 tcase_add_test(tc_core, test_stresar_salidas_viable);
-	 tcase_add_test(tc_core, test_max_nodos);
-	 */
+	tcase_add_test(tc_core, test_determina_nodos_viables);
+	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
+
+	*/
+	tcase_add_test(tc_core, test_encuentra_escape_imposible);
+	tcase_add_test(tc_core, test_encuentra_escape_posible);
+	tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
+	tcase_add_test(tc_core, test_video_kill);
+	tcase_add_test(tc_core, test_radio_star);
+	tcase_add_test(tc_core, test_stresar_salidas);
+	tcase_add_test(tc_core, test_stresar_salidas_viable);
+	tcase_add_test(tc_core, test_max_nodos);
 	tcase_add_test(tc_core, test_max_nodos_posible);
+	/*
+	 */
 	/*
 	 */
 

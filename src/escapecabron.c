@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 #ifdef HAVE_EXECINFO_H
 #	include <execinfo.h>
 #endif
@@ -104,27 +105,34 @@ int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 	return num_nodos - contador_nodos_ruta_maldita + 1;
 }
 
-float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
+double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 		tipo_dato posicion_polis, tipo_dato posicion_ratas,
 		tipo_dato *salidas_carretera, int num_salidas_carretera) {
-	int i;
-	int num_nodos_viables = 0;
-	int num_salidas_viables = 0;
-	float maxima_velocidad = 0;
-	float tiempo_polis = 0;
+	int i, j;
+	int num_nodos = 0;
+	int tam_ruta_a_salida_actual = 0;
+	double maxima_velocidad = 0;
+	double tiempo_polis = 0;
+	double velocidad_minima = (double) MAX_VALOR;
 	tipo_dato salida_carretera_actual = 0;
 	tipo_dato distancia_salida_carretera_actual = 0;
 	tipo_dato distancia_polis_a_ratas = 0;
 	tipo_dato distancia_recorrida_polis = 0;
 	tipo_dato min_distancia_salida = MAX_VALOR;
 	tipo_dato ind_min_distancia_salida = 0;
+	tipo_dato ind_nodo_actual = 0;
+	tipo_dato distancia_poli_a_nodo_actual;
+	tipo_dato distancia_min_poli_a_nodo_actual = MAX_VALOR;
+	tipo_dato ind_distancia_min_poli_a_nodo_actual = MAX_VALOR;
 	char *buffer = NULL;
+	tipo_dato *distancias_minimas_bandido = NULL;
+	tipo_dato *antecesores_bandido = NULL;
+	tipo_dato *distancias_minimas_polis = NULL;
+	tipo_dato *antecesores_polis = NULL;
 	nodo_cola_prioridad *nodo_salida_mas_cercana = NULL;
-	grafo_contexto *grafo_viable_ctx = NULL;
-	tipo_dato *distancias_minimas = NULL;
-	tipo_dato *antecesores = NULL;
-	tipo_dato *distancias_salidas_carretera = NULL;
-	tipo_dato *salidas_carretera_viables = NULL;
+	grafo_contexto *grafo_bandido_ctx = NULL;
+	grafo_contexto *grafo_poli_ctx = NULL;
+	tipo_dato *ruta_a_salida_actual = NULL;
 
 	buffer = calloc(1000, sizeof(char));
 
@@ -138,51 +146,70 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	caca_log_debug("la matrix de adjacencia:");
 	caca_imprime_matrix(matrix_aristas, num_filas, NULL, 3);
 
-	grafo_viable_ctx = calloc(1, sizeof(grafo_contexto));
-	if (!grafo_viable_ctx) {
-		perror("no se consigio memoria para grafo viable");
+	grafo_poli_ctx = calloc(1, sizeof(grafo_contexto));
+	if (!grafo_poli_ctx) {
+		perror("no se consigio memoria para grafo poli");
 		abort();
 	}
 
-	num_nodos_viables = escape_cabron_determina_nodos_viables(matrix_aristas,
-			num_filas, grafo_viable_ctx, posicion_polis, posicion_ratas,
-			&distancia_polis_a_ratas);
-
-	caca_log_debug("l num de nodos viables %d", num_nodos_viables);
-
-	if (num_nodos_viables < 2) {
-		return maxima_velocidad;
-	}
-
-	distancias_minimas = malloc((num_nodos_viables + 1) * sizeof(tipo_dato));
-	if (!distancias_minimas) {
-		perror("no se consigio memoria para distancias");
+	grafo_bandido_ctx = calloc(1, sizeof(grafo_contexto));
+	if (!grafo_bandido_ctx) {
+		perror("no se consigio memoria para grafo bandido");
 		abort();
 	}
-	antecesores = malloc((num_nodos_viables + 1) * sizeof(tipo_dato));
-	if (!antecesores) {
+
+	num_nodos = init_grafo(matrix_aristas, num_filas, grafo_poli_ctx, falso,
+			verdadero);
+
+	distancias_minimas_bandido = calloc((num_nodos + 1), sizeof(tipo_dato));
+	if (!distancias_minimas_bandido) {
+		perror("no se consigio memoria para distancias bandido");
+		abort();
+	}
+	antecesores_bandido = calloc((num_nodos + 1), sizeof(tipo_dato));
+	if (!antecesores_bandido) {
 		perror("no se consigio memoria para antecesores");
 		abort();
 	}
-	distancias_salidas_carretera = calloc(num_salidas_carretera,
-			sizeof(tipo_dato));
-	if (!antecesores) {
-		perror("no se consigio memoria para distancias de salidas a carretera");
-		abort();
-	}
-	salidas_carretera_viables = calloc(num_salidas_carretera,
-			sizeof(tipo_dato));
-	if (!antecesores) {
-		perror("no se consigio memoria para salidas a carretera viables");
-		abort();
-	}
-	memset(antecesores, DIJKSTRA_VALOR_INVALIDO,
-			(num_nodos_viables+ 1) * sizeof(tipo_dato));
-	memset(distancias_minimas, DIJKSTRA_VALOR_INVALIDO,
-			(num_nodos_viables+ 1) * sizeof(tipo_dato));
 
-	dijkstra_main(NULL, 0, posicion_ratas, posicion_polis, grafo_viable_ctx,
-			distancias_minimas, antecesores);
+	distancias_minimas_polis = calloc((num_nodos + 1), sizeof(tipo_dato));
+	if (!distancias_minimas_polis) {
+		perror("no se consigio memoria para distancias poli");
+		abort();
+	}
+	antecesores_polis = calloc((num_nodos + 1), sizeof(tipo_dato));
+	if (!antecesores_polis) {
+		perror("no se consigio memoria para antecesores");
+		abort();
+	}
+
+	ruta_a_salida_actual = calloc(num_nodos + 1, sizeof(tipo_dato));
+	if (!ruta_a_salida_actual) {
+		perror("no se consigio memoria para ruta_salida_actual");
+		abort();
+	}
+
+	caca_log_debug("l num de nodos poli %d", num_nodos);
+
+	grafo_copia_profunda(grafo_poli_ctx, grafo_bandido_ctx, &posicion_polis, 1);
+
+	dijkstra_main(NULL, 0, posicion_polis, 0, grafo_poli_ctx,
+			distancias_minimas_polis, antecesores_polis);
+
+	caca_log_debug("las distancias minimas de poli %ld %s", posicion_polis,
+			caca_arreglo_a_cadena(distancias_minimas_polis, num_nodos + 1,
+					buffer));
+	caca_log_debug("los antecesores de los polis %s",
+			caca_arreglo_a_cadena(antecesores_polis, num_nodos + 1, buffer));
+
+	dijkstra_main(NULL, 0, posicion_ratas, 0, grafo_bandido_ctx,
+			distancias_minimas_bandido, antecesores_bandido);
+
+	caca_log_debug("las distancias minimas de bandidos %ld %s", posicion_ratas,
+			caca_arreglo_a_cadena(distancias_minimas_bandido, num_nodos + 1,
+					buffer));
+	caca_log_debug("los antecesores de los bandidos %s",
+			caca_arreglo_a_cadena(antecesores_bandido, num_nodos + 1, buffer));
 
 	for (i = 0; i < num_salidas_carretera; i++) {
 		salida_carretera_actual = *(salidas_carretera + i);
@@ -191,91 +218,89 @@ float escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 					salida_carretera_actual);
 			continue;
 		}
-		if ((distancia_salida_carretera_actual = *(distancias_minimas
-				+ salida_carretera_actual)) == MAX_VALOR
-				|| distancia_salida_carretera_actual
-						== COLA_PRIORIDAD_VALOR_INVALIDO) {
-			caca_log_debug("Mierda, la salida %ld es inalcanzable",
+		if (*(distancias_minimas_bandido + salida_carretera_actual)
+				== COLA_PRIORIDAD_VALOR_INVALIDO) {
+			caca_log_debug("VERGA, la salida a %ld es inalcanzable",
 					salida_carretera_actual);
 			continue;
 		}
-		caca_log_debug("Salida a carretera %ld es viable con %ld",
-				salida_carretera_actual, distancia_salida_carretera_actual);
-		*(distancias_salidas_carretera + num_salidas_viables) =
-				distancia_salida_carretera_actual;
-		*(salidas_carretera_viables + num_salidas_viables) =
-				salida_carretera_actual;
-		num_salidas_viables++;
-	}
+		//TODO: Si ya se empieza en la salida
 
-	caca_log_debug("las distancias a las salidas de la carretera son %s",
-			caca_arreglo_a_cadena(distancias_salidas_carretera,
-					num_salidas_viables, buffer));
-	caca_log_debug("las salidas de la carretera viables son %s",
-			caca_arreglo_a_cadena(salidas_carretera_viables,
-					num_salidas_viables, buffer));
+		dijkstra_calcula_ruta(antecesores_bandido, num_nodos + 1,
+				posicion_ratas, salida_carretera_actual, ruta_a_salida_actual,
+				&tam_ruta_a_salida_actual);
+		caca_log_debug("la ruta maldita a %ld es %s, de tam %d",
+				salida_carretera_actual,
+				caca_arreglo_a_cadena(ruta_a_salida_actual,
+						tam_ruta_a_salida_actual, buffer),
+				tam_ruta_a_salida_actual);
 
-	if (!num_salidas_viables) {
-		return maxima_velocidad;
-	}
-
-	for (i = 0; i < num_salidas_viables; i++) {
-		distancia_salida_carretera_actual = *(distancias_salidas_carretera + i);
-		if (distancia_salida_carretera_actual < min_distancia_salida) {
-			min_distancia_salida = distancia_salida_carretera_actual;
-			ind_min_distancia_salida = *(salidas_carretera_viables + i);
+		distancia_min_poli_a_nodo_actual = MAX_VALOR;
+		ind_distancia_min_poli_a_nodo_actual = MAX_VALOR;
+		for (j = 0; j < tam_ruta_a_salida_actual - 1; j++) {
+			ind_nodo_actual = *(ruta_a_salida_actual + j);
+			distancia_poli_a_nodo_actual = *(distancias_minimas_polis
+					+ ind_nodo_actual);
+			caca_log_debug("distancia de policia a %ld es %ld", ind_nodo_actual,
+					distancia_poli_a_nodo_actual);
+			if (distancia_poli_a_nodo_actual
+					< distancia_min_poli_a_nodo_actual) {
+				distancia_min_poli_a_nodo_actual = distancia_poli_a_nodo_actual;
+				ind_distancia_min_poli_a_nodo_actual = ind_nodo_actual;
+			}
 		}
+
+		distancia_recorrida_polis = distancia_min_poli_a_nodo_actual;
+
+		tiempo_polis = (double) (distancia_recorrida_polis)
+				/ (double) (MAX_VEL_POLIS);
+		caca_log_debug(
+				"la distancia recorrida x los polis %ld y su max vel %ld, x tanto su tiempo %f",
+				distancia_recorrida_polis, MAX_VEL_POLIS, tiempo_polis);
+
+		maxima_velocidad = (double) (*(distancias_minimas_bandido
+				+ salida_carretera_actual)) / (tiempo_polis);
+		caca_log_debug(
+				"la distancia a la salida mas cercana para los amantes bandidos %ld, la max velocidad %f",
+				*(distancias_minimas_bandido + salida_carretera_actual),
+				maxima_velocidad);
+		if (maxima_velocidad < velocidad_minima) {
+			velocidad_minima = maxima_velocidad;
+		}
+
 	}
+	if (velocidad_minima == (double) MAX_VALOR) {
+		return 0;
+	}
+	caca_log_debug("la velocidad minima encontrada es %f", velocidad_minima);
 
-	caca_log_debug("la salida mas cercana %ld a %ld km",
-			ind_min_distancia_salida, min_distancia_salida);
-
-	nodo_salida_mas_cercana = calloc(1, sizeof(nodo_cola_prioridad));
-	COLA_PRIORIDAD_ASIGNA_VALOR(nodo_salida_mas_cercana,
-			ind_min_distancia_salida);
-	COLA_PRIORIDAD_ASIGNA_INDICE(nodo_salida_mas_cercana, min_distancia_salida);
-
-	caca_log_debug("La salida mas cercana es %ld, con distancia %ld",
-			nodo_salida_mas_cercana->valor, nodo_salida_mas_cercana->indice);
-
-	distancia_recorrida_polis = nodo_salida_mas_cercana->indice
-			+ distancia_polis_a_ratas;
-
-	tiempo_polis = (float) distancia_recorrida_polis / MAX_VEL_POLIS;
-
-	maxima_velocidad = (float) nodo_salida_mas_cercana->indice / tiempo_polis;
-
-	return maxima_velocidad;
+	return velocidad_minima;
 }
 
-float escape_cabron_main() {
-	float maxima_velocidad = 0;
+double escape_cabron_main() {
+	double maxima_velocidad = 0;
 
 	int num_aristas = 0;
 
 	tipo_dato num_nodos = 0, num_salidas = 0;
 	tipo_dato posicion_ratas = 0, posicion_polis = 0;
 
-	tipo_dato datos_escape_mem[ESCAPE_CABRON_MAX_FILAS_INPUT][ESCAPE_CABRON_MAX_COLS_INPUT] =
-			{ { 0 } };
-	/* 	tipo_dato *datos_escape_mem = NULL; */
+	tipo_dato *datos_escape_mem = NULL;
 
 	tipo_dato *datos_escape = (tipo_dato *) datos_escape_mem;
 	tipo_dato *inicio_aristas = NULL;
 	tipo_dato *salidas = NULL;
 
-	/*
-	 datos_escape_mem = calloc(
-	 ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT,
-	 sizeof(tipo_dato));
-	 if (!datos_escape_mem) {
-	 perror("no se obtubo memoria para los datos del escape");
-	 abort();
-	 }
-	 datos_escape = datos_escape_mem;
-	 */
+	datos_escape_mem = calloc(
+			ESCAPE_CABRON_MAX_FILAS_INPUT * ESCAPE_CABRON_MAX_COLS_INPUT,
+			sizeof(tipo_dato));
+	if (!datos_escape_mem) {
+		perror("no se obtubo memoria para los datos del escape");
+		abort();
+	}
+	datos_escape = datos_escape_mem;
 
-	lee_matrix_long_stdin((tipo_dato *) datos_escape_mem, &num_aristas, NULL,
+	lee_matrix_long_stdin((tipo_dato *) datos_escape, &num_aristas, NULL,
 			ESCAPE_CABRON_MAX_FILAS_INPUT, ESCAPE_CABRON_MAX_COLS_INPUT);
 	caca_log_debug("la matrix leida,num de aristas %ld", num_aristas);
 	caca_imprime_matrix(datos_escape_mem, num_aristas, NULL,
@@ -303,4 +328,33 @@ float escape_cabron_main() {
 
 	caca_log_debug("la maxima velocida calculada %f", maxima_velocidad);
 	return maxima_velocidad;
+}
+
+void dijkstra_calcula_ruta(tipo_dato *antecesores, int tam_antecesores,
+		tipo_dato posicion_inicial, tipo_dato posicion_destino,
+		tipo_dato *ruta_maldita, int *tam_ruta) {
+	int contador_nodos_recorridos = 0;
+	int contador_nodos_ruta_maldita = 0;
+	tipo_dato ancestro_actual = 0;
+
+	caca_log_debug("sacando la ruta maldita de %ld a %ld", posicion_inicial,
+			posicion_destino);
+	*(ruta_maldita + contador_nodos_ruta_maldita++) = posicion_destino;
+	caca_log_debug("nodo destino %ld", posicion_destino);
+	while (*(ruta_maldita + contador_nodos_ruta_maldita - 1) != posicion_inicial
+			&& contador_nodos_recorridos < tam_antecesores) {
+		ancestro_actual = *(antecesores
+				+ *(ruta_maldita + contador_nodos_ruta_maldita - 1));
+		caca_log_debug("ancestro actual %ld en %d", ancestro_actual,
+				contador_nodos_ruta_maldita);
+		if (ancestro_actual != 0) {
+			*(ruta_maldita + contador_nodos_ruta_maldita) = ancestro_actual;
+			contador_nodos_ruta_maldita++;
+		} else {
+			break;
+		}
+		contador_nodos_recorridos++;
+	}
+	*tam_ruta = contador_nodos_recorridos + 1;
+	caca_log_debug("el tamaño de la ruta queda %d", *tam_ruta);
 }
