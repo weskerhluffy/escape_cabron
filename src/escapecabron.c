@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include <assert.h>
 #ifdef HAVE_EXECINFO_H
 #	include <execinfo.h>
 #endif
@@ -134,6 +135,18 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	grafo_contexto *grafo_poli_ctx = NULL;
 	tipo_dato *ruta_a_salida_actual = NULL;
 
+	if (caca_arreglo_contiene(salidas_carretera, num_salidas_carretera,
+			posicion_polis)) {
+		caca_log_debug("Se empieza en una salida, asi que todo esta hecho");
+		return 0;
+	}
+
+	if (posicion_polis == posicion_ratas) {
+		caca_log_debug(
+				"VERGA, la posicion de las ratas y de los polis es la misma");
+		return velocidad_minima;
+	}
+
 	buffer = calloc(1000, sizeof(char));
 
 	caca_log_debug("el num d filas %d", num_filas);
@@ -224,7 +237,6 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 					salida_carretera_actual);
 			continue;
 		}
-		//TODO: Si ya se empieza en la salida
 
 		dijkstra_calcula_ruta(antecesores_bandido, num_nodos + 1,
 				posicion_ratas, salida_carretera_actual, ruta_a_salida_actual,
@@ -249,6 +261,8 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 				ind_distancia_min_poli_a_nodo_actual = ind_nodo_actual;
 			}
 		}
+		assert(distancia_min_poli_a_nodo_actual <= MAX_VALOR);
+		assert(ind_distancia_min_poli_a_nodo_actual <= MAX_VALOR);
 
 		distancia_recorrida_polis = distancia_min_poli_a_nodo_actual;
 
@@ -259,20 +273,47 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 				distancia_recorrida_polis, MAX_VEL_POLIS, tiempo_polis);
 
 		maxima_velocidad = (double) (*(distancias_minimas_bandido
-				+ salida_carretera_actual)) / (tiempo_polis);
+				+ ind_distancia_min_poli_a_nodo_actual)) / (tiempo_polis);
 		caca_log_debug(
-				"la distancia a la salida mas cercana para los amantes bandidos %ld, la max velocidad %f",
+				"nodo donde ambos c encuentran %ld, distancia de ratas a ese nodo %ld",
+				ind_distancia_min_poli_a_nodo_actual,
+				*(distancias_minimas_bandido
+						+ ind_distancia_min_poli_a_nodo_actual));
+		caca_log_debug(
+				"la distancia a la salida mas cercana para los amantes bandidos %ld, la max velocidad %.10f",
 				*(distancias_minimas_bandido + salida_carretera_actual),
 				maxima_velocidad);
+
+		// TODO: Caso especial si la max vel es MAX vel de polis?
+		if (maxima_velocidad < (double) MAX_VEL_POLIS) {
+			caca_log_debug("sere tu heroe de amor");
+			distancia_recorrida_polis = *(distancias_minimas_polis
+					+ salida_carretera_actual);
+			tiempo_polis = (double) (distancia_recorrida_polis)
+					/ (double) (MAX_VEL_POLIS);
+			maxima_velocidad = (double) (*(distancias_minimas_bandido
+					+ salida_carretera_actual)) / (tiempo_polis);
+			/*
+			 caca_log_debug(
+			 "la velocidad era demasiado poca, entonces la distancia del poli a la salida era mayor, por lo que se usa esa distancia para calcular la velocidad %f",
+			 maxima_velocidad);
+			 */
+			caca_log_debug("sere tu amante bastardo, digo bandido %f",
+					maxima_velocidad);
+		}
+
 		if (maxima_velocidad < velocidad_minima) {
 			velocidad_minima = maxima_velocidad;
 		}
 
 	}
-	if (velocidad_minima == (double) MAX_VALOR) {
-		return 0;
-	}
-	caca_log_debug("la velocidad minima encontrada es %f", velocidad_minima);
+
+	/* ???
+	 if (velocidad_minima == (double) MAX_VALOR) {
+	 return 0;
+	 }
+	 */
+	caca_log_debug("la velocidad minima encontrada es %.10f", velocidad_minima);
 
 	return velocidad_minima;
 }

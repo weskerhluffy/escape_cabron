@@ -109,7 +109,8 @@ START_TEST( test_encuentra_escape_imposible)
 				POSICION_INICIAL_POLICIAS, POSICION_INICIAL_BANDIDOS_DE_AMORES,
 				(tipo_dato *) SALIDAS_A_CARRETERA, 1);
 
-		ck_assert_msg(!resultado, "verga, la velocidad max es %f", resultado);
+		ck_assert_msg(resultado==MAX_VALOR, "verga, la velocidad max es %f",
+				resultado);
 	}END_TEST
 
 START_TEST( test_encuentra_escape_posible)
@@ -225,10 +226,12 @@ START_TEST(test_video_kill)
 		*resultado_assestment = -1;
 
 		if (!pid) {
+			printf("put play on VCR\n");
 			resultado_real = escape_cabron_main();
 
 			*resultado_assestment = fabsf(
 					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+			printf("ya se regreso el valor %f \n", resultado_real);
 
 		} else {
 			for (int i = 0; i < NUM_FILAS; i++) {
@@ -345,9 +348,7 @@ START_TEST(test_radio_star)
 			perror("forkpty no c pudo acer"), abort();
 		}
 		printf("si se izo pid\n");
-
 		*resultado_assestment = -1;
-
 		if (!pid) {
 			printf("q pedo\n");
 			resultado_real = escape_cabron_main();
@@ -473,7 +474,6 @@ START_TEST(test_stresar_salidas)
 		printf("si se izo pid\n");
 
 		*resultado_assestment = -1;
-
 		if (!pid) {
 			printf("q pedo\n");
 			resultado_real = escape_cabron_main();
@@ -603,7 +603,6 @@ START_TEST(test_stresar_salidas_viable)
 		printf("si se izo pid\n");
 
 		*resultado_assestment = -1;
-
 		if (!pid) {
 			printf("q pedo\n");
 			resultado_real = escape_cabron_main();
@@ -680,9 +679,7 @@ START_TEST(test_max_nodos)
 			perror("forkpty no c pudo acer"), abort();
 		}
 		printf("si se izo pid\n");
-
 		*resultado_assestment = -1;
-
 		if (!pid) {
 			printf("q pedo\n");
 			resultado_real = escape_cabron_main();
@@ -760,9 +757,7 @@ START_TEST(test_max_nodos_posible)
 			perror("forkpty no c pudo acer"), abort();
 		}
 		printf("si se izo pid\n");
-
 		*resultado_assestment = -1;
-
 		if (!pid) {
 			printf("q pedo\n");
 			resultado_real = escape_cabron_main();
@@ -772,6 +767,410 @@ START_TEST(test_max_nodos_posible)
 
 		} else {
 			printf("me corto las pelotas\n");
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  6
+START_TEST(test_rata_cerca)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 159.6666666667;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "4 3 1\n" },
+
+		{ "1 2 320\n" },
+
+		{ "2 3 159\n" },
+
+		{ "2 4 160\n" },
+
+		{ "1\n" },
+
+		{ "3 4\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+
+		if (!pid) {
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  6
+START_TEST(test_rata_cerca_x)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 107;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "4 3 1\n" },
+
+		{ "1 2 320\n" },
+
+		{ "2 3 1\n" },
+
+		{ "2 4 160\n" },
+
+		{ "1\n" },
+
+		{ "3 4\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+
+		if (!pid) {
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  6
+START_TEST(test_poli_cerca)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 161.0062893082;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "4 3 1\n" },
+
+		{ "1 2 320\n" },
+
+		{ "2 3 160\n" },
+
+		{ "2 4 159\n" },
+
+		{ "1\n" },
+
+		{ "3 4\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+		if (!pid) {
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  6
+START_TEST(test_poli_cerca_x)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 25600;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "4 3 1\n" },
+
+		{ "1 2 320\n" },
+
+		{ "2 3 160\n" },
+
+		{ "2 4 1\n" },
+
+		{ "1\n" },
+
+		{ "3 4\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+		if (!pid) {
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  6
+START_TEST(test_ambos_cerca)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = 160;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "4 3 1\n" },
+
+		{ "1 2 320\n" },
+
+		{ "2 3 160\n" },
+
+		{ "2 4 160\n" },
+
+		{ "1\n" },
+
+		{ "3 4\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+		if (!pid) {
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
+			for (int i = 0; i < NUM_FILAS; i++) {
+				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
+				write(ptyfd, *(VALORES_ENTRADA + i),
+						strlen(*(VALORES_ENTRADA + i)));
+			}
+			write(ptyfd, EOT, 1);
+		}
+
+		if (pid) {
+			while (*resultado_assestment < 0) {
+				sleep(5);
+			}
+			printf("cerrando todo\n");
+			close(ptyfd);
+			ck_assert_msg(*resultado_assestment > 0, "Las matrices no son =s");
+		} else {
+
+		}
+	}END_TEST
+
+#undef NUM_FILAS
+#define NUM_FILAS  6
+START_TEST(test_poli_estorbando)
+	{
+
+		const char EOT[] = { 4, '\0' };
+		const float VALOR_ESPERADO = MAX_VALOR;
+		const char VALORES_ENTRADA[NUM_FILAS][10] = {
+
+		{ "3 3 1\n" },
+
+		{ "1 2 320\n" },
+
+		{ "2 3 1\n" },
+
+		{ "2 4 480\n" },
+
+		{ "1\n" },
+
+		{ "3 2\n" }
+
+		};
+
+		int ptyfd = 0;
+		int pid = 0;
+
+		float resultado_real = 0;
+
+		printf("you were the last one \n");
+
+		resultado_assestment = mmap(NULL, sizeof *resultado_assestment,
+				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+
+		printf("antes de forkear\n");
+		pid = forkpty(&ptyfd, 0, 0, 0);
+		if (pid < 0) {
+			perror("forkpty no c pudo acer"), abort();
+		}
+
+		*resultado_assestment = -1;
+		if (!pid) {
+			resultado_real = escape_cabron_main();
+
+			*resultado_assestment = fabsf(
+					VALOR_ESPERADO - resultado_real) < ERROR_MAXIMO;
+
+		} else {
 			for (int i = 0; i < NUM_FILAS; i++) {
 				printf("escribiendo esta mierda %s", *(VALORES_ENTRADA + i));
 				write(ptyfd, *(VALORES_ENTRADA + i),
@@ -803,10 +1202,14 @@ escapecabron_suite(void) {
 	sleep(5);
 #endif
 	/*
-	tcase_add_test(tc_core, test_determina_nodos_viables);
-	tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
+	 tcase_add_test(tc_core, test_determina_nodos_viables);
 
-	*/
+	 tcase_add_test(tc_core, test_determina_nodos_viables_caso_posible);
+
+	 */
+
+	/*
+	 */
 	tcase_add_test(tc_core, test_encuentra_escape_imposible);
 	tcase_add_test(tc_core, test_encuentra_escape_posible);
 	tcase_add_test(tc_core, test_encuentra_escape_ultimo_exemplo);
@@ -816,6 +1219,12 @@ escapecabron_suite(void) {
 	tcase_add_test(tc_core, test_stresar_salidas_viable);
 	tcase_add_test(tc_core, test_max_nodos);
 	tcase_add_test(tc_core, test_max_nodos_posible);
+	tcase_add_test(tc_core, test_rata_cerca);
+	tcase_add_test(tc_core, test_rata_cerca_x);
+	tcase_add_test(tc_core, test_poli_cerca);
+	tcase_add_test(tc_core, test_poli_cerca_x);
+	tcase_add_test(tc_core, test_ambos_cerca);
+	tcase_add_test(tc_core, test_poli_estorbando);
 	/*
 	 */
 	/*
