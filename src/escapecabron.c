@@ -1,5 +1,6 @@
 /*
  ============================================================================
+
  Name        : escape_cabron.c
  Author      : ernesto
  Version     :
@@ -14,11 +15,53 @@
 #include <string.h>
 #include <float.h>
 #include <assert.h>
+#include <limits.h>
 #ifdef HAVE_EXECINFO_H
 #	include <execinfo.h>
 #endif
 #include <cacacomun.h>
 #include "escapecabron.h"
+
+/**
+ * Casos:
+ * Un solo punto: Imposible
+ * Sin salidas: Imposible
+ * Todas las diferencias de distancias =s y favorables: Hecho
+ * Todas las diferencias de distancias =s y desfavorables: Hecho
+ * Todas las diferencias de distancias =s y con velocidad resultante de 160 / Todas las diferencias de distancias =s a cero: Prueba escritorio
+ * Diferencias de distancias favorables con favorable max al principio: Prueba escritorio
+ * Diferencias de distancias favorables con favorable max al final: Prueba escritorio
+ * Diferencias de distancias favorables con favorable max al medio: Prueba escritorio
+ * Diferencias de distancias desfavorables con favorable max al principio: Prueba escritorio
+ * Diferencias de distancias desfavorables con favorable max al final: Prueba escritorio
+ * Diferencias de distancias desfavorables con favorable max al medio: Prueba escritorio
+ * Diferencias de distancias mezcladas favorables y desfavorables: Prueba escritorio
+ * Poli en salida unica: Hecho
+ * Poli en salida no unica: Hecho
+ * Rata en salida: Hecho
+ * Rata y poli en salida
+ * Poli en camino salida unica: Hecho
+ * Poli en camino salida no unica: Hecho
+ * Solo 2 nodos: Hecho
+ * Razon de distancias decreciente a la salida: Hecho
+ * Poli a bandido cerca y algun subsecuente nodo del bandido muy lejos (si poli persigue por la ruta del bandido)
+ * * Velocidad para escapar de poli en persecucion menor a velocidad calculada: Hecho, dijkstra toma en cuenta ruta de persecucion
+ * * Velocidad para escapar de poli en persecucion mayor a velocidad calculada: Imposible, la ruta de persecucion es descartada por dijkstra
+ * Poli en salida y corta salidas:
+ * Rata y poli en mismo punto no salida: Hecho
+ *
+ */
+
+/**
+ *
+ * @param matrix_aristas
+ * @param num_filas
+ * @param grafo_viable_ctx
+ * @param posicion_incomoda
+ * @param posicion_inicial
+ * @param distancia_posicion_incomoda_a_inicial
+ * @return
+ */
 
 int escape_cabron_determina_nodos_viables(void *matrix_aristas, int num_filas,
 		grafo_contexto *grafo_viable_ctx, tipo_dato posicion_incomoda,
@@ -113,18 +156,21 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	int num_nodos = 0;
 	int tam_ruta_a_salida_actual = 0;
 	double maxima_velocidad = 0;
+	double velocidad_persecucion = 0;
 	double tiempo_polis = 0;
 	double velocidad_minima = (double) MAX_VALOR;
+	double razon_max_rata_y_poli_a_nodo_actual = MAX_VALOR;
+	double razon_rata_y_poli_a_nodo_actual = MAX_VALOR;
 	tipo_dato salida_carretera_actual = 0;
 	tipo_dato distancia_salida_carretera_actual = 0;
-	tipo_dato distancia_polis_a_ratas = 0;
 	tipo_dato distancia_recorrida_polis = 0;
+	tipo_dato distancia_recorrida_bandidos = 0;
 	tipo_dato min_distancia_salida = MAX_VALOR;
 	tipo_dato ind_min_distancia_salida = 0;
 	tipo_dato ind_nodo_actual = 0;
 	tipo_dato distancia_poli_a_nodo_actual;
-	tipo_dato distancia_min_poli_a_nodo_actual = MAX_VALOR;
-	tipo_dato ind_distancia_min_poli_a_nodo_actual = MAX_VALOR;
+	tipo_dato distancia_rata_a_nodo_actual;
+	tipo_dato ind_razon_max_rata_y_poli_a_nodo_actual = MAX_VALOR;
 	char *buffer = NULL;
 	tipo_dato *distancias_minimas_bandido = NULL;
 	tipo_dato *antecesores_bandido = NULL;
@@ -135,17 +181,6 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 	grafo_contexto *grafo_poli_ctx = NULL;
 	tipo_dato *ruta_a_salida_actual = NULL;
 
-	if (caca_arreglo_contiene(salidas_carretera, num_salidas_carretera,
-			posicion_polis)) {
-		caca_log_debug("Se empieza en una salida, asi que todo esta hecho");
-		return 0;
-	}
-
-	if (posicion_polis == posicion_ratas) {
-		caca_log_debug(
-				"VERGA, la posicion de las ratas y de los polis es la misma");
-		return velocidad_minima;
-	}
 
 	buffer = calloc(1000, sizeof(char));
 
@@ -158,6 +193,18 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 					buffer));
 	caca_log_debug("la matrix de adjacencia:");
 	caca_imprime_matrix(matrix_aristas, num_filas, NULL, 3);
+
+	if (caca_arreglo_contiene(salidas_carretera, num_salidas_carretera,
+			posicion_ratas)) {
+		caca_log_debug("Se empieza en una salida, asi que todo esta hecho");
+		return 0;
+	}
+
+	if (posicion_polis == posicion_ratas) {
+		caca_log_debug(
+				"VERGA, la posicion de las ratas y de los polis es la misma");
+		return velocidad_minima;
+	}
 
 	grafo_poli_ctx = calloc(1, sizeof(grafo_contexto));
 	if (!grafo_poli_ctx) {
@@ -241,67 +288,85 @@ double escape_cabron_encuentra_escape(void *matrix_aristas, int num_filas,
 		dijkstra_calcula_ruta(antecesores_bandido, num_nodos + 1,
 				posicion_ratas, salida_carretera_actual, ruta_a_salida_actual,
 				&tam_ruta_a_salida_actual);
-		caca_log_debug("la ruta maldita a %ld es %s, de tam %d",
-				salida_carretera_actual,
+		caca_log_debug("la ruta maldita de %ld a %ld es %s, de tam %d",
+				posicion_ratas, salida_carretera_actual,
 				caca_arreglo_a_cadena(ruta_a_salida_actual,
 						tam_ruta_a_salida_actual, buffer),
 				tam_ruta_a_salida_actual);
 
-		distancia_min_poli_a_nodo_actual = MAX_VALOR;
-		ind_distancia_min_poli_a_nodo_actual = MAX_VALOR;
-		for (j = 0; j < tam_ruta_a_salida_actual - 1; j++) {
+		if (tam_ruta_a_salida_actual < 2) {
+			caca_log_debug("que mierda, la ruta a %ld es imposible del todo",
+					salida_carretera_actual);
+			continue;
+		}
+
+		razon_max_rata_y_poli_a_nodo_actual = DBL_MIN;
+		ind_razon_max_rata_y_poli_a_nodo_actual = MAX_VALOR;
+		for (j = tam_ruta_a_salida_actual - 2; j >= 0; j--) {
 			ind_nodo_actual = *(ruta_a_salida_actual + j);
 			distancia_poli_a_nodo_actual = *(distancias_minimas_polis
 					+ ind_nodo_actual);
 			caca_log_debug("distancia de policia a %ld es %ld", ind_nodo_actual,
 					distancia_poli_a_nodo_actual);
-			if (distancia_poli_a_nodo_actual
-					< distancia_min_poli_a_nodo_actual) {
-				distancia_min_poli_a_nodo_actual = distancia_poli_a_nodo_actual;
-				ind_distancia_min_poli_a_nodo_actual = ind_nodo_actual;
+			distancia_rata_a_nodo_actual = *(distancias_minimas_bandido
+					+ ind_nodo_actual);
+			caca_log_debug("distancia de bandido a %ld es %ld", ind_nodo_actual,
+					distancia_rata_a_nodo_actual);
+			razon_rata_y_poli_a_nodo_actual =
+					(double) distancia_rata_a_nodo_actual
+							/ (double) distancia_poli_a_nodo_actual;
+			caca_log_debug("la razon es %f", razon_rata_y_poli_a_nodo_actual);
+			if (razon_rata_y_poli_a_nodo_actual
+					> razon_max_rata_y_poli_a_nodo_actual) {
+				razon_max_rata_y_poli_a_nodo_actual =
+						razon_rata_y_poli_a_nodo_actual;
+				ind_razon_max_rata_y_poli_a_nodo_actual = ind_nodo_actual;
 			}
 		}
-		assert(distancia_min_poli_a_nodo_actual <= MAX_VALOR);
-		assert(ind_distancia_min_poli_a_nodo_actual <= MAX_VALOR);
+		caca_log_debug("la razon max es %f",
+				razon_max_rata_y_poli_a_nodo_actual);
+		caca_log_debug("el ind de la razon max es %ld",
+				ind_razon_max_rata_y_poli_a_nodo_actual);
+		assert(razon_max_rata_y_poli_a_nodo_actual!=MAX_VALOR);
+		assert(ind_razon_max_rata_y_poli_a_nodo_actual!=MAX_VALOR);
 
-		distancia_recorrida_polis = distancia_min_poli_a_nodo_actual;
+		distancia_recorrida_polis = *(distancias_minimas_polis
+				+ ind_razon_max_rata_y_poli_a_nodo_actual);
+		distancia_recorrida_bandidos = *(distancias_minimas_bandido
+				+ ind_razon_max_rata_y_poli_a_nodo_actual);
 
-		tiempo_polis = (double) (distancia_recorrida_polis)
-				/ (double) (MAX_VEL_POLIS);
-		caca_log_debug(
-				"la distancia recorrida x los polis %ld y su max vel %ld, x tanto su tiempo %f",
-				distancia_recorrida_polis, MAX_VEL_POLIS, tiempo_polis);
-
-		maxima_velocidad = (double) (*(distancias_minimas_bandido
-				+ ind_distancia_min_poli_a_nodo_actual)) / (tiempo_polis);
+		maxima_velocidad = (double) (distancia_recorrida_bandidos
+				* MAX_VEL_POLIS) / ((double) distancia_recorrida_polis);
 		caca_log_debug(
 				"nodo donde ambos c encuentran %ld, distancia de ratas a ese nodo %ld",
-				ind_distancia_min_poli_a_nodo_actual,
-				*(distancias_minimas_bandido
-						+ ind_distancia_min_poli_a_nodo_actual));
+				ind_razon_max_rata_y_poli_a_nodo_actual,
+				distancia_recorrida_bandidos);
 		caca_log_debug(
 				"la distancia a la salida mas cercana para los amantes bandidos %ld, la max velocidad %.10f",
 				*(distancias_minimas_bandido + salida_carretera_actual),
 				maxima_velocidad);
 
-		// TODO: Caso especial si la max vel es MAX vel de polis?
-		if (maxima_velocidad < (double) MAX_VEL_POLIS) {
-			caca_log_debug("sere tu heroe de amor");
-			distancia_recorrida_polis = *(distancias_minimas_polis
-					+ salida_carretera_actual);
-			tiempo_polis = (double) (distancia_recorrida_polis)
-					/ (double) (MAX_VEL_POLIS);
-			maxima_velocidad = (double) (*(distancias_minimas_bandido
-					+ salida_carretera_actual)) / (tiempo_polis);
-			/*
-			 caca_log_debug(
-			 "la velocidad era demasiado poca, entonces la distancia del poli a la salida era mayor, por lo que se usa esa distancia para calcular la velocidad %f",
-			 maxima_velocidad);
-			 */
-			caca_log_debug("sere tu amante bastardo, digo bandido %f",
+		if (maxima_velocidad < MAX_VEL_POLIS) {
+			caca_log_debug("max vel calculada es %f,peligro de poli alcanzando",
 					maxima_velocidad);
+
+			distancia_recorrida_bandidos = *(distancias_minimas_bandido
+					+ salida_carretera_actual);
+			distancia_recorrida_polis = *(distancias_minimas_polis
+					+ salida_carretera_actual) + distancia_recorrida_bandidos;
+			velocidad_persecucion = (double) (distancia_recorrida_bandidos
+					* MAX_VEL_POLIS) / ((double) distancia_recorrida_polis);
+
+			caca_log_debug("velocidad de persecucion %f",
+					velocidad_persecucion);
+
+			if (velocidad_persecucion > maxima_velocidad) {
+				maxima_velocidad = velocidad_persecucion;
+			}
+
 		}
 
+		// TODO: Caso especial si la max vel es MAX vel de polis?
 		if (maxima_velocidad < velocidad_minima) {
 			velocidad_minima = maxima_velocidad;
 		}
